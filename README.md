@@ -1,6 +1,6 @@
--- =========================================================
+    -- =========================================================
 -- ⚡ KYLER HUB 3.1 (COMPLETO E CORRIGIDO)
--- 🔥 FLING FUNCIONANDO + MENU MENOR + TODAS AS FUNÇÕES
+-- 🔥 FLING SOFÁ FUNCIONANDO NO BROOKHAVEN
 -- 💕 Feito com amor pro meu baby
 -- =========================================================
 
@@ -358,7 +358,6 @@ executorLabel.Font = Enum.Font.SourceSans
 executorLabel.TextSize = 12
 executorLabel.Parent = ScrollFrame
 
--- Botões de servidor
 CreateActionButton("🔄 Reconectar", function()
     TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId)
 end)
@@ -575,7 +574,6 @@ end)
 -- =========================================================
 CreateSectionHeader("🎨 RGB")
 
--- Nome RGB
 CreateToggleButton("🌈 Nome RGB", function(state)
     if state then
         task.spawn(function()
@@ -600,7 +598,6 @@ CreateToggleButton("🌈 Nome RGB", function(state)
     end
 end)
 
--- Corpo RGB
 CreateToggleButton("🌈 Corpo RGB", function(state)
     if state then
         task.spawn(function()
@@ -621,7 +618,6 @@ CreateToggleButton("🌈 Corpo RGB", function(state)
     end
 end)
 
--- Copiar Avatar
 local copyTarget = nil
 
 CreateTextBox("Alvo para copiar", "Digite o nome", function(value)
@@ -688,7 +684,7 @@ CreateActionButton("📋 Copiar Avatar", function()
 end)
 
 -- =========================================================
--- 8. FLING CORRIGIDO (FUNCIONA EM QUALQUER JOGO)
+-- 8. FLING (CORRIGIDO - SOFÁ FUNCIONA NO BROOKHAVEN)
 -- =========================================================
 CreateSectionHeader("🔥 FLING")
 
@@ -698,7 +694,7 @@ CreateTextBox("Alvo do Fling", "Digite o nome", function(value)
     selectedPlayer = value
 end)
 
--- FLING BOLA (GENÉRICO E FUNCIONAL)
+-- FLING BOLA
 CreateActionButton("⚽ Fling Bola", function()
     if not selectedPlayer then
         print("❌ Digite um alvo!")
@@ -725,7 +721,6 @@ CreateActionButton("⚽ Fling Bola", function()
     
     local originalPos = myHRP.CFrame
     
-    -- Cria uma bola invisível
     local ball = Instance.new("Part")
     ball.Size = Vector3.new(2, 2, 2)
     ball.Shape = Enum.PartType.Ball
@@ -771,7 +766,7 @@ CreateActionButton("⚽ Fling Bola", function()
     print("✅ Fling Bola em " .. target.Name)
 end)
 
--- FLING SOFA (GENÉRICO E FUNCIONAL)
+-- 🔥 FLING SOFA - CORRIGIDO PARA BROOKHAVEN
 CreateActionButton("🛋️ Fling Sofá", function()
     if not selectedPlayer then
         print("❌ Digite um alvo!")
@@ -784,47 +779,113 @@ CreateActionButton("🛋️ Fling Sofá", function()
         return
     end
     
-    local targetHRP = target.Character:FindFirstChild("HumanoidRootPart")
-    if not targetHRP then
-        print("❌ Alvo sem HumanoidRootPart!")
+    local char = LocalPlayer.Character
+    if not char then
+        print("❌ Você sem personagem!")
         return
     end
     
-    local myHRP = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if not myHRP then
-        print("❌ Você sem HumanoidRootPart!")
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    local root = char:FindFirstChild("HumanoidRootPart")
+    local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
+    
+    if not hum or not root or not tRoot then
+        print("❌ Componentes necessários não encontrados!")
         return
     end
     
-    local originalPos = myHRP.CFrame
+    -- LIMPA FERRAMENTAS
+    pcall(function()
+        ReplicatedStorage:WaitForChild("RE"):WaitForChild("1Clea1rTool1s"):FireServer("ClearAllTools")
+    end)
+    task.wait(0.2)
     
-    for i = 1, 20 do
-        if not target.Character or not targetHRP.Parent then break end
-        
-        myHRP.CFrame = targetHRP.CFrame * CFrame.new(math.random(-3, 3), math.random(1, 3), math.random(-3, 3))
-        
-        local force = Vector3.new(
-            math.random(-10000, 10000),
-            math.random(1000, 20000),
-            math.random(-10000, 10000)
-        )
-        
-        targetHRP.AssemblyLinearVelocity = force
-        myHRP.AssemblyLinearVelocity = -force
-        
-        local humanoid = target.Character:FindFirstChildOfClass("Humanoid")
-        if humanoid and i % 5 == 0 then
-            humanoid.Health = humanoid.Health - 10
+    -- PEGA O SOFÁ
+    pcall(function()
+        ReplicatedStorage.RE:FindFirstChild("1Too1l"):InvokeServer("PickingTools", "Couch")
+    end)
+    task.wait(0.3)
+    
+    -- EQUIPA O SOFÁ
+    local tool = LocalPlayer.Backpack:FindFirstChild("Couch")
+    if tool then
+        tool.Parent = char
+        print("✅ Sofá equipado!")
+    else
+        print("❌ Sofá não encontrado!")
+        return
+    end
+    task.wait(0.1)
+    
+    -- SIMULA SENTAR
+    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.F, false, game)
+    task.wait(0.1)
+    
+    local originalPos = root.CFrame
+    local sitPos = Vector3.new(145.51, -350.09, 21.58)
+    
+    hum:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
+    hum.PlatformStand = false
+    Workspace.CurrentCamera.CameraSubject = target.Character:FindFirstChild("Head") or tRoot or hum
+    
+    local align = Instance.new("BodyPosition")
+    align.Name = "BringPosition"
+    align.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+    align.D = 10
+    align.P = 30000
+    align.Position = root.Position
+    align.Parent = tRoot
+    
+    task.spawn(function()
+        local angle = 0
+        local startTime = tick()
+        while tick() - startTime < 5 and target and target.Character and target.Character:FindFirstChildOfClass("Humanoid") do
+            local tHum = target.Character:FindFirstChildOfClass("Humanoid")
+            if not tHum or tHum.Sit then break end
+            
+            local hrp = target.Character.HumanoidRootPart
+            local adjustedPos = hrp.Position + (hrp.Velocity / 1.5)
+            
+            angle = angle + 50
+            root.CFrame = CFrame.new(adjustedPos + Vector3.new(0, 2, 0)) * CFrame.Angles(math.rad(angle), 0, 0)
+            align.Position = root.Position + Vector3.new(2, 0, 0)
+            task.wait()
         end
         
-        task.wait()
-    end
-    
-    myHRP.CFrame = originalPos
-    print("✅ Fling Sofá em " .. target.Name)
+        align:Destroy()
+        hum:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
+        hum.PlatformStand = false
+        Workspace.CurrentCamera.CameraSubject = hum
+        
+        for _, p in pairs(char:GetDescendants()) do
+            if p:IsA("BasePart") then
+                p.Velocity = Vector3.zero
+                p.RotVelocity = Vector3.zero
+            end
+        end
+        
+        task.wait(0.1)
+        root.CFrame = CFrame.new(sitPos)
+        task.wait(0.3)
+        
+        -- DEVOLVE O SOFÁ
+        local tool = char:FindFirstChild("Couch")
+        if tool then
+            tool.Parent = LocalPlayer.Backpack
+        end
+        
+        task.wait(0.01)
+        pcall(function()
+            ReplicatedStorage.RE:FindFirstChild("1Too1l"):InvokeServer("PickingTools", "Couch")
+        end)
+        task.wait(0.2)
+        root.CFrame = originalPos
+        
+        print("✅ Fling Sofá em " .. target.Name)
+    end)
 end)
 
--- FLING CARRO (GENÉRICO E FUNCIONAL)
+-- FLING CARRO
 CreateActionButton("🚗 Fling Carro", function()
     if not selectedPlayer then
         print("❌ Digite um alvo!")
@@ -884,7 +945,6 @@ CreateActionButton("🚗 Fling Carro", function()
     print("✅ Fling Carro em " .. target.Name)
 end)
 
--- FLING TODOS
 CreateActionButton("💀 Fling Todos", function()
     for _, player in pairs(Players:GetPlayers()) do
         if player ~= LocalPlayer and player.Character then

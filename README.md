@@ -1,6 +1,6 @@
 -- =========================================================
 -- ⚡ KYLER HUB 3.1 (COMPLETO E CORRIGIDO)
--- 🔥 FLING SOFÁ + PUXAR SOFÁ FUNCIONANDO
+-- 🔥 PUXAR SOFÁ - GIRA E TRAZ O ALVO
 -- 💕 Feito com amor pro meu baby
 -- =========================================================
 
@@ -949,6 +949,7 @@ CreateActionButton("🛋️ Fling Sofá", function()
     end)
 end)
 
+-- 🔥 PUXAR COM SOFÁ - CORRIGIDO (GIRA E TRAZ O ALVO)
 CreateActionButton("🔄 Puxar com Sofá", function()
     local target = GetTargetPlayer()
     if not target then
@@ -961,6 +962,25 @@ CreateActionButton("🔄 Puxar com Sofá", function()
         return
     end
     
+    local char = LocalPlayer.Character
+    if not char then
+        print("❌ Você sem personagem!")
+        return
+    end
+    
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    local root = char:FindFirstChild("HumanoidRootPart")
+    local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
+    
+    if not hum or not root or not tRoot then
+        print("❌ Componentes não encontrados!")
+        return
+    end
+    
+    -- 🔥 SALVA A POSIÇÃO ORIGINAL DO ALVO
+    local targetOriginalPos = tRoot.CFrame
+    
+    -- 🔥 PEGA O SOFÁ
     pcall(function()
         ReplicatedStorage.RE["1Clea1rTool1s"]:FireServer("ClearAllTools")
         task.wait(0.2)
@@ -975,6 +995,7 @@ CreateActionButton("🔄 Puxar com Sofá", function()
         return
     end
     
+    -- 🔥 PREPARA O SOFÁ
     couch.Name = "Chaos.Couch"
     local seat1 = couch:FindFirstChild("Seat1")
     local seat2 = couch:FindFirstChild("Seat2")
@@ -988,12 +1009,14 @@ CreateActionButton("🔄 Puxar com Sofá", function()
         print("❌ Componentes do sofá não encontrados!")
         return
     end
-    couch.Parent = LocalPlayer.Character
+    couch.Parent = char
     task.wait(0.2)
     
+    -- 🔥 SIMULA SENTAR
     VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.F, false, game)
     task.wait(0.1)
     
+    -- 🔥 CRIA O BODYVELOCITY PARA PUXAR
     local tet = Instance.new("BodyVelocity", seat1)
     tet.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
     tet.P = 1250
@@ -1001,48 +1024,70 @@ CreateActionButton("🔄 Puxar com Sofá", function()
     tet.Name = "#mOVOOEPF$#@F$#GERE..>V<<<<EW<V<<W"
     
     local targetPlayer = target
+    local angle = 0
     
     task.spawn(function()
         local attempts = 0
         repeat
             attempts = attempts + 1
-            for m = 1, 35 do
+            
+            -- 🔥 LOOP PARA GIRAR E PUXAR O ALVO
+            for m = 1, 40 do
                 local tRoot = targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart")
                 if not tRoot then 
                     print("❌ Alvo perdeu o personagem!")
                     break 
                 end
                 
+                -- 🔥 CALCULA A POSIÇÃO DO ALVO
                 local pos = Vector3.new(
                     tRoot.Position.X + (tRoot.Velocity.X / 2),
                     tRoot.Position.Y + (tRoot.Velocity.Y / 2),
                     tRoot.Position.Z + (tRoot.Velocity.Z / 2)
                 )
                 
-                seat1.CFrame = CFrame.new(pos) * CFrame.new(-2, 2, 0)
+                -- 🔥 GIRA O SOFÁ EM VOLTA DO ALVO
+                angle = angle + 25
+                local radius = 3
+                local circleX = math.cos(math.rad(angle)) * radius
+                local circleZ = math.sin(math.rad(angle)) * radius
+                
+                -- 🔥 MOVE O SOFÁ EM VOLTA DO ALVO
+                seat1.CFrame = CFrame.new(pos + Vector3.new(circleX, 2, circleZ)) * CFrame.Angles(0, math.rad(angle), 0)
+                
+                -- 🔥 APLICA FORÇA NO ALVO PRA SEGUIR O SOFÁ
+                tRoot.AssemblyLinearVelocity = Vector3.new(circleX * 2, 2, circleZ * 2)
+                
                 task.wait()
             end
             
+            -- 🔥 RESETA O SOFÁ
             tet:Destroy()
             couch.Parent = LocalPlayer.Backpack
             task.wait()
             couch:FindFirstChild("Handle ").Name = "Handle"
             task.wait(0.2)
-            couch.Parent = LocalPlayer.Character
+            couch.Parent = char
             task.wait()
             couch.Parent = LocalPlayer.Backpack
             couch.Handle.Name = "Handle "
             task.wait(0.2)
-            couch.Parent = LocalPlayer.Character
+            couch.Parent = char
             
+            -- 🔥 RECRIA O BODYVELOCITY
             tet = Instance.new("BodyVelocity", seat1)
             tet.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
             tet.P = 1250
             tet.Velocity = Vector3.new(0, 0, 0)
             tet.Name = "#mOVOOEPF$#@F$#GERE..>V<<<<EW<V<<W"
             
+            -- 🔥 VERIFICA SE O ALVO SENTOU
             local targetHum = targetPlayer.Character and targetPlayer.Character:FindFirstChildOfClass("Humanoid")
             if targetHum and targetHum.Sit == true then
+                -- 🔥 TRAZ O ALVO PRA PERTO DE VOCÊ
+                local myPos = root.Position
+                tRoot.CFrame = CFrame.new(myPos + Vector3.new(0, 2, 0))
+                print("✅ Alvo trazido para perto!")
                 break
             end
             
@@ -1053,13 +1098,14 @@ CreateActionButton("🔄 Puxar com Sofá", function()
             
         until targetPlayer.Character and targetPlayer.Character.Humanoid and targetPlayer.Character.Humanoid.Sit == true
         
+        -- 🔥 FINALIZA
         task.wait()
         tet:Destroy()
         couch.Parent = LocalPlayer.Backpack
         task.wait()
         couch:FindFirstChild("Handle ").Name = "Handle"
         task.wait(0.3)
-        couch.Parent = LocalPlayer.Character
+        couch.Parent = char
         task.wait(0.3)
         couch.Grip = CFrame.new(Vector3.new(0, 0, 0))
         task.wait(0.3)
@@ -1068,7 +1114,7 @@ CreateActionButton("🔄 Puxar com Sofá", function()
             ReplicatedStorage.RE["1Clea1rTool1s"]:FireServer("ClearAllTools")
         end)
         
-        print("✅ Jogador puxado!")
+        print("✅ Jogador puxado e girado!")
     end)
 end)
 

@@ -1,4 +1,4 @@
-    -- =========================================================
+-- =========================================================
 -- ⚡ KYLER HUB 3.1 (COMPLETO E CORRIGIDO)
 -- 🔥 FLING SOFÁ FUNCIONANDO NO BROOKHAVEN
 -- 💕 Feito com amor pro meu baby
@@ -684,7 +684,7 @@ CreateActionButton("📋 Copiar Avatar", function()
 end)
 
 -- =========================================================
--- 8. FLING (CORRIGIDO - SOFÁ FUNCIONA NO BROOKHAVEN)
+-- 8. FLING SOFÁ CORRIGIDO (BROOKHAVEN)
 -- =========================================================
 CreateSectionHeader("🔥 FLING")
 
@@ -766,16 +766,70 @@ CreateActionButton("⚽ Fling Bola", function()
     print("✅ Fling Bola em " .. target.Name)
 end)
 
--- 🔥 FLING SOFA - CORRIGIDO PARA BROOKHAVEN
-CreateActionButton("🛋️ Fling Sofá", function()
-    if not selectedPlayer then
-        print("❌ Digite um alvo!")
-        return
+-- =========================================================
+-- FLING SOFÁ - BROOKHAVEN (CORRIGIDO COM PEGA SOFÁ)
+-- =========================================================
+
+-- Função para limpar ferramentas
+local function cleanupCouch()
+    local char = LocalPlayer.Character
+    if char then
+        local couch = char:FindFirstChild("Chaos.Couch") or LocalPlayer.Backpack:FindFirstChild("Chaos.Couch")
+        if couch then
+            couch:Destroy()
+        end
+    end
+    pcall(function()
+        ReplicatedStorage:WaitForChild("RE"):WaitForChild("1Clea1rTool1s"):FireServer("ClearAllTools")
+    end)
+end
+
+-- 🔥 FUNÇÃO PARA PEGAR E EQUIPAR O SOFÁ
+local function PegarEEquiparSofa()
+    local char = LocalPlayer.Character
+    if not char then
+        print("❌ Você sem personagem!")
+        return false
     end
     
-    local target = Players:FindFirstChild(selectedPlayer)
-    if not target or not target.Character then
-        print("❌ Alvo não encontrado!")
+    -- Limpa ferramentas antigas
+    pcall(function()
+        ReplicatedStorage:WaitForChild("RE"):WaitForChild("1Clea1rTool1s"):FireServer("ClearAllTools")
+    end)
+    task.wait(0.2)
+    
+    -- 🔥 PEGA O SOFÁ DO BROOKHAVEN
+    pcall(function()
+        ReplicatedStorage.RE:FindFirstChild("1Too1l"):InvokeServer("PickingTools", "Couch")
+    end)
+    task.wait(0.3)
+    
+    -- 🔥 VERIFICA SE O SOFÁ ESTÁ NO BACKPACK
+    local tool = LocalPlayer.Backpack:FindFirstChild("Couch")
+    if not tool then
+        print("❌ Sofá não encontrado no Backpack!")
+        return false
+    end
+    
+    -- 🔥 EQUIPA O SOFÁ (MOVE DO BACKPACK PRO CHARACTER)
+    tool.Parent = char
+    print("✅ Sofá equipado!")
+    task.wait(0.1)
+    
+    -- 🔥 VERIFICA SE EQUIPOU
+    local equipped = char:FindFirstChild("Couch")
+    if not equipped then
+        print("❌ Falha ao equipar o sofá!")
+        return false
+    end
+    
+    return true
+end
+
+-- FUNÇÃO PRINCIPAL DO FLING SOFÁ (BROOKHAVEN)
+local function FlingSofaBrookhaven(targetPlayer)
+    if not targetPlayer or not targetPlayer.Character then
+        print("❌ Alvo inválido!")
         return
     end
     
@@ -787,47 +841,31 @@ CreateActionButton("🛋️ Fling Sofá", function()
     
     local hum = char:FindFirstChildOfClass("Humanoid")
     local root = char:FindFirstChild("HumanoidRootPart")
-    local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
+    local tRoot = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
     
     if not hum or not root or not tRoot then
         print("❌ Componentes necessários não encontrados!")
         return
     end
     
-    -- LIMPA FERRAMENTAS
-    pcall(function()
-        ReplicatedStorage:WaitForChild("RE"):WaitForChild("1Clea1rTool1s"):FireServer("ClearAllTools")
-    end)
-    task.wait(0.2)
-    
-    -- PEGA O SOFÁ
-    pcall(function()
-        ReplicatedStorage.RE:FindFirstChild("1Too1l"):InvokeServer("PickingTools", "Couch")
-    end)
-    task.wait(0.3)
-    
-    -- EQUIPA O SOFÁ
-    local tool = LocalPlayer.Backpack:FindFirstChild("Couch")
-    if tool then
-        tool.Parent = char
-        print("✅ Sofá equipado!")
-    else
-        print("❌ Sofá não encontrado!")
+    -- 🔥 CHAMA A FUNÇÃO PARA PEGAR E EQUIPAR O SOFÁ
+    if not PegarEEquiparSofa() then
+        print("❌ Falha ao pegar o sofá!")
         return
     end
-    task.wait(0.1)
-    
-    -- SIMULA SENTAR
-    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.F, false, game)
-    task.wait(0.1)
     
     local originalPos = root.CFrame
     local sitPos = Vector3.new(145.51, -350.09, 21.58)
     
+    -- 🔥 SIMULA CLIQUE (F) PARA SENTAR NO SOFÁ
+    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.F, false, game)
+    task.wait(0.1)
+    
     hum:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
     hum.PlatformStand = false
-    Workspace.CurrentCamera.CameraSubject = target.Character:FindFirstChild("Head") or tRoot or hum
+    Workspace.CurrentCamera.CameraSubject = targetPlayer.Character:FindFirstChild("Head") or tRoot or hum
     
+    -- 🔥 CRIA O ALIGN PARA SEGUIR O ALVO
     local align = Instance.new("BodyPosition")
     align.Name = "BringPosition"
     align.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
@@ -836,14 +874,15 @@ CreateActionButton("🛋️ Fling Sofá", function()
     align.Position = root.Position
     align.Parent = tRoot
     
+    -- 🔥 LOOP DE FLING
     task.spawn(function()
         local angle = 0
         local startTime = tick()
-        while tick() - startTime < 5 and target and target.Character and target.Character:FindFirstChildOfClass("Humanoid") do
-            local tHum = target.Character:FindFirstChildOfClass("Humanoid")
+        while tick() - startTime < 5 and targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChildOfClass("Humanoid") do
+            local tHum = targetPlayer.Character:FindFirstChildOfClass("Humanoid")
             if not tHum or tHum.Sit then break end
             
-            local hrp = target.Character.HumanoidRootPart
+            local hrp = targetPlayer.Character.HumanoidRootPart
             local adjustedPos = hrp.Position + (hrp.Velocity / 1.5)
             
             angle = angle + 50
@@ -852,6 +891,7 @@ CreateActionButton("🛋️ Fling Sofá", function()
             task.wait()
         end
         
+        -- 🔥 FINALIZA
         align:Destroy()
         hum:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
         hum.PlatformStand = false
@@ -868,10 +908,11 @@ CreateActionButton("🛋️ Fling Sofá", function()
         root.CFrame = CFrame.new(sitPos)
         task.wait(0.3)
         
-        -- DEVOLVE O SOFÁ
+        -- 🔥 DEVOLVE O SOFÁ
         local tool = char:FindFirstChild("Couch")
         if tool then
             tool.Parent = LocalPlayer.Backpack
+            print("✅ Sofá devolvido ao Backpack!")
         end
         
         task.wait(0.01)
@@ -881,12 +922,12 @@ CreateActionButton("🛋️ Fling Sofá", function()
         task.wait(0.2)
         root.CFrame = originalPos
         
-        print("✅ Fling Sofá em " .. target.Name)
+        print("✅ Fling Sofá aplicado em " .. targetPlayer.Name)
     end)
-end)
+end
 
--- FLING CARRO
-CreateActionButton("🚗 Fling Carro", function()
+-- 🔥 BOTÃO DO FLING SOFÁ (BROOKHAVEN)
+CreateActionButton("🛋️ Fling Sofá", function()
     if not selectedPlayer then
         print("❌ Digite um alvo!")
         return
@@ -898,68 +939,111 @@ CreateActionButton("🚗 Fling Carro", function()
         return
     end
     
-    local targetHRP = target.Character:FindFirstChild("HumanoidRootPart")
-    if not targetHRP then
-        print("❌ Alvo sem HumanoidRootPart!")
-        return
-    end
-    
-    local vehicle = nil
-    for _, v in pairs(Workspace:GetDescendants()) do
-        if v:IsA("VehicleSeat") and v.Parent then
-            local dist = (v.Position - targetHRP.Position).Magnitude
-            if dist < 50 then
-                vehicle = v.Parent
-                break
-            end
-        end
-    end
-    
-    if not vehicle then
-        print("❌ Nenhum veículo próximo!")
-        return
-    end
-    
-    local primaryPart = vehicle.PrimaryPart or vehicle:FindFirstChild("Body") or vehicle:FindFirstChildOfClass("BasePart")
-    if not primaryPart then
-        print("❌ Veículo sem parte primária!")
-        return
-    end
-    
-    for i = 1, 30 do
-        if not target.Character or not targetHRP.Parent then break end
-        
-        local randomDir = Vector3.new(
-            math.random(-5000, 5000),
-            math.random(1000, 10000),
-            math.random(-5000, 5000)
-        )
-        
-        vehicle:SetPrimaryPartCFrame(targetHRP.CFrame * CFrame.new(0, 2, 0))
-        primaryPart.AssemblyLinearVelocity = randomDir
-        targetHRP.AssemblyLinearVelocity = randomDir
-        
-        task.wait()
-    end
-    
-    print("✅ Fling Carro em " .. target.Name)
+    FlingSofaBrookhaven(target)
 end)
 
-CreateActionButton("💀 Fling Todos", function()
-    for _, player in pairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character then
-            local targetHRP = player.Character:FindFirstChild("HumanoidRootPart")
-            if targetHRP then
-                targetHRP.AssemblyLinearVelocity = Vector3.new(
-                    math.random(-10000, 10000),
-                    math.random(5000, 15000),
-                    math.random(-10000, 10000)
-                )
-            end
-            task.wait(0.2)
-        end
+-- 🔥 PUXAR COM SOFÁ (BROOKHAVEN)
+local function BringWithCouchBrookhaven(targetPlayer)
+    if not targetPlayer or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        print("❌ Alvo inválido!")
+        return
     end
-    print("✅ Fling em todos!")
+    
+    pcall(function()
+        ReplicatedStorage.RE["1Clea1rTool1s"]:FireServer("ClearAllTools")
+        local args = { "PickingTools", "Couch" }
+        ReplicatedStorage.RE:FindFirstChild("1Too1l"):InvokeServer(unpack(args))
+    end)
+    
+    local couch = LocalPlayer.Backpack:WaitForChild("Couch", 3)
+    if not couch then
+        print("❌ Sofá não encontrado no Backpack!")
+        return
+    end
+    
+    couch.Name = "Chaos.Couch"
+    local seat1 = couch:FindFirstChild("Seat1")
+    local seat2 = couch:FindFirstChild("Seat2")
+    local handle = couch:FindFirstChild("Handle")
+    
+    if seat1 and seat2 and handle then
+        seat1.Disabled = true
+        seat2.Disabled = true
+        handle.Name = "Handle "
+    else
+        print("❌ Componentes do sofá não encontrados!")
+        return
+    end
+    couch.Parent = LocalPlayer.Character
+    
+    local tet = Instance.new("BodyVelocity", seat1)
+    tet.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+    tet.P = 1250
+    tet.Velocity = Vector3.new(0, 0, 0)
+    tet.Name = "#mOVOOEPF$#@F$#GERE..>V<<<<EW<V<<W"
+    
+    local target = targetPlayer
+    task.spawn(function()
+        repeat
+            for m = 1, 35 do
+                local tRoot = target.Character and target.Character.HumanoidRootPart
+                if not tRoot then break end
+                local pos = Vector3.new(
+                    tRoot.Position.X + (tRoot.Velocity.X / 2),
+                    tRoot.Position.Y + (tRoot.Velocity.Y / 2),
+                    tRoot.Position.Z + (tRoot.Velocity.Z / 2)
+                )
+                seat1.CFrame = CFrame.new(pos) * CFrame.new(-2, 2, 0)
+                task.wait()
+            end
+            tet:Destroy()
+            couch.Parent = LocalPlayer.Backpack
+            task.wait()
+            couch:FindFirstChild("Handle ").Name = "Handle"
+            task.wait(0.2)
+            couch.Parent = LocalPlayer.Character
+            task.wait()
+            couch.Parent = LocalPlayer.Backpack
+            couch.Handle.Name = "Handle "
+            task.wait(0.2)
+            couch.Parent = LocalPlayer.Character
+            tet = Instance.new("BodyVelocity", seat1)
+            tet.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+            tet.P = 1250
+            tet.Velocity = Vector3.new(0, 0, 0)
+            tet.Name = "#mOVOOEPF$#@F$#GERE..>V<<<<EW<V<<W"
+        until target.Character and target.Character.Humanoid and target.Character.Humanoid.Sit == true
+        
+        task.wait()
+        tet:Destroy()
+        couch.Parent = LocalPlayer.Backpack
+        task.wait()
+        couch:FindFirstChild("Handle ").Name = "Handle"
+        task.wait(0.3)
+        couch.Parent = LocalPlayer.Character
+        task.wait(0.3)
+        couch.Grip = CFrame.new(Vector3.new(0, 0, 0))
+        task.wait(0.3)
+        pcall(function()
+            ReplicatedStorage.RE["1Clea1rTool1s"]:FireServer("ClearAllTools")
+        end)
+        print("✅ Jogador puxado com sofá!")
+    end)
+end
+
+CreateActionButton("🔄 Puxar com Sofá", function()
+    if not selectedPlayer then
+        print("❌ Digite um alvo!")
+        return
+    end
+    
+    local target = Players:FindFirstChild(selectedPlayer)
+    if not target or not target.Character then
+        print("❌ Alvo não encontrado!")
+        return
+    end
+    
+    BringWithCouchBrookhaven(target)
 end)
 
 -- =========================================================

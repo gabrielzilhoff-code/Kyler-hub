@@ -1,6 +1,6 @@
 -- =========================================================
 -- ⚡ KYLER HUB 3.1 (COMPLETO E CORRIGIDO)
--- 🔥 FLING SOFÁ FUNCIONANDO NO BROOKHAVEN
+-- 🔥 FLING SOFÁ FUNCIONANDO + BUSCA POR PARTE DO NOME
 -- 💕 Feito com amor pro meu baby
 -- =========================================================
 
@@ -279,14 +279,14 @@ local function CreateTextBox(text, placeholder, callback)
 end
 
 -- =========================================================
--- 3. CAMPO DE SELEÇÃO DE JOGADOR
+-- 3. CAMPO DE SELEÇÃO DE JOGADOR (CORRIGIDO)
 -- =========================================================
 CreateSectionHeader("🎯 ALVO")
 
 local TargetInput = Instance.new("TextBox")
 TargetInput.Size = UDim2.new(1, -8, 0, 30)
 TargetInput.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
-TargetInput.PlaceholderText = "Digite o nome do alvo..."
+TargetInput.PlaceholderText = "Digite o começo do nome..."
 TargetInput.TextColor3 = Color3.fromRGB(255, 255, 255)
 TargetInput.Font = Enum.Font.SourceSans
 TargetInput.TextSize = 13
@@ -296,15 +296,68 @@ local TargetCorner = Instance.new("UICorner")
 TargetCorner.CornerRadius = UDim.new(0, 6)
 TargetCorner.Parent = TargetInput
 
-local function GetTargetPlayer()
-    local name = TargetInput.Text:lower()
-    if name == "" then return nil end
+-- 🔥 VARIÁVEIS QUE GUARDAM O ALVO SELECIONADO
+local selectedPlayer = nil
+local selectedPlayerName = nil
+
+-- 🔥 FUNÇÃO QUE PROCURA O JOGADOR PELO COMEÇO DO NOME
+local function FindPlayerByPartialName(partial)
+    if partial == "" then return nil end
+    local partialLower = partial:lower()
     for _, p in pairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer and (p.Name:lower():sub(1, #name) == name or p.DisplayName:lower():sub(1, #name) == name) then
-            return p
+        if p ~= LocalPlayer then
+            local nameLower = p.Name:lower()
+            local displayLower = p.DisplayName:lower()
+            if nameLower:sub(1, #partialLower) == partialLower or 
+               displayLower:sub(1, #partialLower) == partialLower then
+                return p
+            end
         end
     end
     return nil
+end
+
+-- 🔥 FUNÇÃO QUE ATUALIZA O ALVO
+local function UpdateTarget()
+    local input = TargetInput.Text
+    if input == "" then
+        selectedPlayer = nil
+        selectedPlayerName = nil
+        print("❌ Nenhum alvo selecionado")
+        return
+    end
+    
+    local player = FindPlayerByPartialName(input)
+    if player then
+        selectedPlayer = player
+        selectedPlayerName = player.Name
+        TargetInput.Text = player.Name
+        TargetInput.TextColor3 = Color3.fromRGB(0, 255, 0)
+        print("✅ Alvo selecionado: " .. player.Name)
+    else
+        if selectedPlayer then
+            print("⚠️ Nenhum jogador com: " .. input .. " (Mantendo: " .. selectedPlayer.Name .. ")")
+        else
+            print("❌ Nenhum jogador com: " .. input)
+        end
+    end
+end
+
+-- 🔥 ATUALIZA QUANDO O USUÁRIO PARAR DE DIGITAR
+TargetInput.FocusLost:Connect(function()
+    UpdateTarget()
+end)
+
+-- 🔥 ATUALIZA A CADA LETRA DIGITADA
+TargetInput:GetPropertyChangedSignal("Text"):Connect(function()
+    if #TargetInput.Text >= 2 then
+        UpdateTarget()
+    end
+end)
+
+-- 🔥 FUNÇÃO PARA PEGAR O ALVO
+local function GetTargetPlayer()
+    return selectedPlayer
 end
 
 -- =========================================================
@@ -688,22 +741,67 @@ end)
 -- =========================================================
 CreateSectionHeader("🔥 FLING")
 
-local selectedPlayer = nil
+-- 🔥 FUNÇÃO PARA LIMPAR FERRAMENTAS
+local function cleanupCouch()
+    local char = LocalPlayer.Character
+    if char then
+        local couch = char:FindFirstChild("Chaos.Couch") or LocalPlayer.Backpack:FindFirstChild("Chaos.Couch")
+        if couch then
+            couch:Destroy()
+        end
+    end
+    pcall(function()
+        ReplicatedStorage:WaitForChild("RE"):WaitForChild("1Clea1rTool1s"):FireServer("ClearAllTools")
+    end)
+end
 
-CreateTextBox("Alvo do Fling", "Digite o nome", function(value)
-    selectedPlayer = value
-end)
+-- 🔥 FUNÇÃO PARA PEGAR E EQUIPAR O SOFÁ
+local function PegarEEquiparSofa()
+    local char = LocalPlayer.Character
+    if not char then
+        print("❌ Você sem personagem!")
+        return false
+    end
+    
+    pcall(function()
+        ReplicatedStorage:WaitForChild("RE"):WaitForChild("1Clea1rTool1s"):FireServer("ClearAllTools")
+    end)
+    task.wait(0.2)
+    
+    pcall(function()
+        ReplicatedStorage.RE:FindFirstChild("1Too1l"):InvokeServer("PickingTools", "Couch")
+    end)
+    task.wait(0.3)
+    
+    local tool = LocalPlayer.Backpack:FindFirstChild("Couch")
+    if not tool then
+        print("❌ Sofá não encontrado no Backpack!")
+        return false
+    end
+    
+    tool.Parent = char
+    print("✅ Sofá equipado!")
+    task.wait(0.1)
+    
+    local equipped = char:FindFirstChild("Couch")
+    if not equipped then
+        print("❌ Falha ao equipar o sofá!")
+        return false
+    end
+    
+    return true
+end
 
--- FLING BOLA
+-- 🔥 FLING BOLA
 CreateActionButton("⚽ Fling Bola", function()
-    if not selectedPlayer then
-        print("❌ Digite um alvo!")
+    local target = GetTargetPlayer()
+    if not target then
+        print("❌ Nenhum alvo selecionado!")
         return
     end
     
-    local target = Players:FindFirstChild(selectedPlayer)
-    if not target or not target.Character then
-        print("❌ Alvo não encontrado!")
+    if not target.Character then
+        print("❌ Alvo sem personagem!")
         return
     end
     
@@ -766,70 +864,16 @@ CreateActionButton("⚽ Fling Bola", function()
     print("✅ Fling Bola em " .. target.Name)
 end)
 
--- =========================================================
--- FLING SOFÁ - BROOKHAVEN (CORRIGIDO COM PEGA SOFÁ)
--- =========================================================
-
--- Função para limpar ferramentas
-local function cleanupCouch()
-    local char = LocalPlayer.Character
-    if char then
-        local couch = char:FindFirstChild("Chaos.Couch") or LocalPlayer.Backpack:FindFirstChild("Chaos.Couch")
-        if couch then
-            couch:Destroy()
-        end
-    end
-    pcall(function()
-        ReplicatedStorage:WaitForChild("RE"):WaitForChild("1Clea1rTool1s"):FireServer("ClearAllTools")
-    end)
-end
-
--- 🔥 FUNÇÃO PARA PEGAR E EQUIPAR O SOFÁ
-local function PegarEEquiparSofa()
-    local char = LocalPlayer.Character
-    if not char then
-        print("❌ Você sem personagem!")
-        return false
+-- 🔥 FLING SOFÁ
+CreateActionButton("🛋️ Fling Sofá", function()
+    local target = GetTargetPlayer()
+    if not target then
+        print("❌ Nenhum alvo selecionado!")
+        return
     end
     
-    -- Limpa ferramentas antigas
-    pcall(function()
-        ReplicatedStorage:WaitForChild("RE"):WaitForChild("1Clea1rTool1s"):FireServer("ClearAllTools")
-    end)
-    task.wait(0.2)
-    
-    -- 🔥 PEGA O SOFÁ DO BROOKHAVEN
-    pcall(function()
-        ReplicatedStorage.RE:FindFirstChild("1Too1l"):InvokeServer("PickingTools", "Couch")
-    end)
-    task.wait(0.3)
-    
-    -- 🔥 VERIFICA SE O SOFÁ ESTÁ NO BACKPACK
-    local tool = LocalPlayer.Backpack:FindFirstChild("Couch")
-    if not tool then
-        print("❌ Sofá não encontrado no Backpack!")
-        return false
-    end
-    
-    -- 🔥 EQUIPA O SOFÁ (MOVE DO BACKPACK PRO CHARACTER)
-    tool.Parent = char
-    print("✅ Sofá equipado!")
-    task.wait(0.1)
-    
-    -- 🔥 VERIFICA SE EQUIPOU
-    local equipped = char:FindFirstChild("Couch")
-    if not equipped then
-        print("❌ Falha ao equipar o sofá!")
-        return false
-    end
-    
-    return true
-end
-
--- FUNÇÃO PRINCIPAL DO FLING SOFÁ (BROOKHAVEN)
-local function FlingSofaBrookhaven(targetPlayer)
-    if not targetPlayer or not targetPlayer.Character then
-        print("❌ Alvo inválido!")
+    if not target.Character then
+        print("❌ Alvo sem personagem!")
         return
     end
     
@@ -841,31 +885,27 @@ local function FlingSofaBrookhaven(targetPlayer)
     
     local hum = char:FindFirstChildOfClass("Humanoid")
     local root = char:FindFirstChild("HumanoidRootPart")
-    local tRoot = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+    local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
     
     if not hum or not root or not tRoot then
         print("❌ Componentes necessários não encontrados!")
         return
     end
     
-    -- 🔥 CHAMA A FUNÇÃO PARA PEGAR E EQUIPAR O SOFÁ
     if not PegarEEquiparSofa() then
-        print("❌ Falha ao pegar o sofá!")
         return
     end
     
     local originalPos = root.CFrame
     local sitPos = Vector3.new(145.51, -350.09, 21.58)
     
-    -- 🔥 SIMULA CLIQUE (F) PARA SENTAR NO SOFÁ
     VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.F, false, game)
     task.wait(0.1)
     
     hum:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
     hum.PlatformStand = false
-    Workspace.CurrentCamera.CameraSubject = targetPlayer.Character:FindFirstChild("Head") or tRoot or hum
+    Workspace.CurrentCamera.CameraSubject = target.Character:FindFirstChild("Head") or tRoot or hum
     
-    -- 🔥 CRIA O ALIGN PARA SEGUIR O ALVO
     local align = Instance.new("BodyPosition")
     align.Name = "BringPosition"
     align.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
@@ -874,15 +914,14 @@ local function FlingSofaBrookhaven(targetPlayer)
     align.Position = root.Position
     align.Parent = tRoot
     
-    -- 🔥 LOOP DE FLING
     task.spawn(function()
         local angle = 0
         local startTime = tick()
-        while tick() - startTime < 5 and targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChildOfClass("Humanoid") do
-            local tHum = targetPlayer.Character:FindFirstChildOfClass("Humanoid")
+        while tick() - startTime < 5 and target and target.Character and target.Character:FindFirstChildOfClass("Humanoid") do
+            local tHum = target.Character:FindFirstChildOfClass("Humanoid")
             if not tHum or tHum.Sit then break end
             
-            local hrp = targetPlayer.Character.HumanoidRootPart
+            local hrp = target.Character.HumanoidRootPart
             local adjustedPos = hrp.Position + (hrp.Velocity / 1.5)
             
             angle = angle + 50
@@ -891,7 +930,6 @@ local function FlingSofaBrookhaven(targetPlayer)
             task.wait()
         end
         
-        -- 🔥 FINALIZA
         align:Destroy()
         hum:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
         hum.PlatformStand = false
@@ -908,7 +946,6 @@ local function FlingSofaBrookhaven(targetPlayer)
         root.CFrame = CFrame.new(sitPos)
         task.wait(0.3)
         
-        -- 🔥 DEVOLVE O SOFÁ
         local tool = char:FindFirstChild("Couch")
         if tool then
             tool.Parent = LocalPlayer.Backpack
@@ -922,29 +959,19 @@ local function FlingSofaBrookhaven(targetPlayer)
         task.wait(0.2)
         root.CFrame = originalPos
         
-        print("✅ Fling Sofá aplicado em " .. targetPlayer.Name)
+        print("✅ Fling Sofá em " .. target.Name)
     end)
-end
-
--- 🔥 BOTÃO DO FLING SOFÁ (BROOKHAVEN)
-CreateActionButton("🛋️ Fling Sofá", function()
-    if not selectedPlayer then
-        print("❌ Digite um alvo!")
-        return
-    end
-    
-    local target = Players:FindFirstChild(selectedPlayer)
-    if not target or not target.Character then
-        print("❌ Alvo não encontrado!")
-        return
-    end
-    
-    FlingSofaBrookhaven(target)
 end)
 
--- 🔥 PUXAR COM SOFÁ (BROOKHAVEN)
-local function BringWithCouchBrookhaven(targetPlayer)
-    if not targetPlayer or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+-- 🔥 PUXAR COM SOFÁ
+CreateActionButton("🔄 Puxar com Sofá", function()
+    local target = GetTargetPlayer()
+    if not target then
+        print("❌ Nenhum alvo selecionado!")
+        return
+    end
+    
+    if not target.Character or not target.Character:FindFirstChild("HumanoidRootPart") then
         print("❌ Alvo inválido!")
         return
     end
@@ -982,7 +1009,6 @@ local function BringWithCouchBrookhaven(targetPlayer)
     tet.Velocity = Vector3.new(0, 0, 0)
     tet.Name = "#mOVOOEPF$#@F$#GERE..>V<<<<EW<V<<W"
     
-    local target = targetPlayer
     task.spawn(function()
         repeat
             for m = 1, 35 do
@@ -1029,21 +1055,6 @@ local function BringWithCouchBrookhaven(targetPlayer)
         end)
         print("✅ Jogador puxado com sofá!")
     end)
-end
-
-CreateActionButton("🔄 Puxar com Sofá", function()
-    if not selectedPlayer then
-        print("❌ Digite um alvo!")
-        return
-    end
-    
-    local target = Players:FindFirstChild(selectedPlayer)
-    if not target or not target.Character then
-        print("❌ Alvo não encontrado!")
-        return
-    end
-    
-    BringWithCouchBrookhaven(target)
 end)
 
 -- =========================================================

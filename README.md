@@ -1,6 +1,6 @@
 -- =========================================================
--- ⚡ KYLER HUB 3.1 (COMPLETO E CORRIGIDO)
--- 🔥 PUXAR SOFÁ - GIRA E TRAZ O ALVO
+-- ⚡ KYLER HUB 3.1 (COMPLETO + TROLL PROP)
+-- 🔥 PUXAR SOFÁ + TROLL PROP
 -- 💕 Feito com amor pro meu baby
 -- =========================================================
 
@@ -101,7 +101,7 @@ ScrollFrame.Position = UDim2.new(0, 8, 0, 40)
 ScrollFrame.BackgroundTransparency = 1
 ScrollFrame.BorderSizePixel = 0
 ScrollFrame.ScrollBarThickness = 5
-ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 2600)
+ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 2800)
 ScrollFrame.Parent = MainFrame
 
 local UIListLayout = Instance.new("UIListLayout")
@@ -1119,7 +1119,269 @@ CreateActionButton("🔄 Puxar com Sofá", function()
 end)
 
 -- =========================================================
--- 9. TELEPORT
+-- 9. TROLL PROP
+-- =========================================================
+CreateSectionHeader("👿 TROLL PROP")
+
+-- 🔥 VARIÁVEIS GLOBAIS
+local propConnections = {}
+
+-- 🔥 FUNÇÃO PARA CRIAR UM PROP (OBJETO) EM CIMA DO ALVO
+local function CriarProp(propType, target)
+    if not target or not target.Character then
+        print("❌ Alvo inválido!")
+        return
+    end
+    
+    local targetHRP = target.Character:FindFirstChild("HumanoidRootPart")
+    if not targetHRP then
+        print("❌ Alvo sem HumanoidRootPart!")
+        return
+    end
+    
+    -- 🔥 CRIA O PROP
+    local prop = Instance.new("Part")
+    prop.Size = Vector3.new(3, 3, 3)
+    prop.Material = Enum.Material.SmoothPlastic
+    prop.Anchored = false
+    prop.CanCollide = true
+    prop.Transparency = 0.3
+    
+    -- DEFINE COR E FORMA
+    if propType == "Cubo" then
+        prop.Shape = Enum.PartType.Block
+        prop.BrickColor = BrickColor.new("Bright red")
+        prop.Size = Vector3.new(3, 3, 3)
+    elseif propType == "Bola" then
+        prop.Shape = Enum.PartType.Ball
+        prop.BrickColor = BrickColor.new("Bright blue")
+        prop.Size = Vector3.new(3, 3, 3)
+    elseif propType == "Cilindro" then
+        prop.Shape = Enum.PartType.Cylinder
+        prop.BrickColor = BrickColor.new("Bright green")
+        prop.Size = Vector3.new(2, 4, 2)
+    elseif propType == "Placa" then
+        prop.Shape = Enum.PartType.Block
+        prop.BrickColor = BrickColor.new("Bright yellow")
+        prop.Size = Vector3.new(5, 0.5, 5)
+    elseif propType == "Peso" then
+        prop.Shape = Enum.PartType.Block
+        prop.BrickColor = BrickColor.new("Really black")
+        prop.Size = Vector3.new(2, 2, 2)
+        prop.Mass = 1000
+    elseif propType == "Paredão" then
+        prop.Shape = Enum.PartType.Block
+        prop.BrickColor = BrickColor.new("Bright violet")
+        prop.Size = Vector3.new(10, 10, 1)
+    end
+    
+    prop.Parent = Workspace
+    
+    -- 🔥 CONECTA O PROP AO ALVO
+    local weld = Instance.new("Weld")
+    weld.Part0 = prop
+    weld.Part1 = targetHRP
+    weld.C0 = CFrame.new(0, 3, 0)
+    weld.Parent = prop
+    
+    print("✅ Prop '" .. propType .. "' criado em cima de " .. target.Name)
+    
+    -- 🔥 GUARDA O PROP PARA REMOVER DEPOIS
+    table.insert(propConnections, {Prop = prop, Weld = weld, Target = target})
+    
+    -- 🔥 REMOVE AUTOMATICAMENTE APÓS 10 SEGUNDOS
+    task.delay(10, function()
+        if prop and prop.Parent then
+            prop:Destroy()
+            print("✅ Prop removido automaticamente!")
+        end
+    end)
+    
+    return prop
+end
+
+-- 🔥 FUNÇÃO PARA REMOVER TODOS OS PROPS
+local function RemoverTodosProps()
+    for _, data in ipairs(propConnections) do
+        if data.Prop and data.Prop.Parent then
+            data.Prop:Destroy()
+        end
+        if data.Weld and data.Weld.Parent then
+            data.Weld:Destroy()
+        end
+    end
+    propConnections = {}
+    print("✅ Todos os props removidos!")
+end
+
+-- 🔥 FUNÇÃO PARA FAZER O PROP PERSEGUIR O ALVO (FLING COM PROP)
+local function PropFling(target, propType)
+    if not target or not target.Character then
+        print("❌ Alvo inválido!")
+        return
+    end
+    
+    local targetHRP = target.Character:FindFirstChild("HumanoidRootPart")
+    if not targetHRP then
+        print("❌ Alvo sem HumanoidRootPart!")
+        return
+    end
+    
+    local prop = CriarProp(propType, target)
+    if not prop then return end
+    
+    -- 🔥 APLICA FLING COM O PROP
+    task.spawn(function()
+        for i = 1, 20 do
+            if not target.Character or not targetHRP.Parent then break end
+            
+            local randomDir = Vector3.new(
+                math.random(-5000, 5000),
+                math.random(3000, 15000),
+                math.random(-5000, 5000)
+            )
+            
+            targetHRP.AssemblyLinearVelocity = randomDir
+            prop.AssemblyLinearVelocity = randomDir
+            
+            if i % 5 == 0 then
+                local humanoid = target.Character:FindFirstChildOfClass("Humanoid")
+                if humanoid then
+                    humanoid.Health = humanoid.Health - 10
+                end
+            end
+            
+            task.wait()
+        end
+        
+        if prop and prop.Parent then
+            prop:Destroy()
+        end
+        print("✅ Prop Fling aplicado em " .. target.Name)
+    end)
+end
+
+-- BOTÕES DA ABA TROLL PROP
+CreateActionButton("📦 Cubo na Cabeça", function()
+    local target = GetTargetPlayer()
+    if not target then
+        print("❌ Nenhum alvo!")
+        return
+    end
+    CriarProp("Cubo", target)
+end)
+
+CreateActionButton("⚽ Bola na Cabeça", function()
+    local target = GetTargetPlayer()
+    if not target then
+        print("❌ Nenhum alvo!")
+        return
+    end
+    CriarProp("Bola", target)
+end)
+
+CreateActionButton("🥫 Cilindro na Cabeça", function()
+    local target = GetTargetPlayer()
+    if not target then
+        print("❌ Nenhum alvo!")
+        return
+    end
+    CriarProp("Cilindro", target)
+end)
+
+CreateActionButton("📋 Placa na Cabeça", function()
+    local target = GetTargetPlayer()
+    if not target then
+        print("❌ Nenhum alvo!")
+        return
+    end
+    CriarProp("Placa", target)
+end)
+
+CreateActionButton("⚫ Peso na Cabeça", function()
+    local target = GetTargetPlayer()
+    if not target then
+        print("❌ Nenhum alvo!")
+        return
+    end
+    CriarProp("Peso", target)
+end)
+
+CreateActionButton("🧱 Paredão na Cabeça", function()
+    local target = GetTargetPlayer()
+    if not target then
+        print("❌ Nenhum alvo!")
+        return
+    end
+    CriarProp("Paredão", target)
+end)
+
+CreateActionButton("💥 Cubo Fling", function()
+    local target = GetTargetPlayer()
+    if not target then
+        print("❌ Nenhum alvo!")
+        return
+    end
+    PropFling(target, "Cubo")
+end)
+
+CreateActionButton("💥 Bola Fling", function()
+    local target = GetTargetPlayer()
+    if not target then
+        print("❌ Nenhum alvo!")
+        return
+    end
+    PropFling(target, "Bola")
+end)
+
+CreateActionButton("🌀 Girar Prop", function()
+    local target = GetTargetPlayer()
+    if not target then
+        print("❌ Nenhum alvo!")
+        return
+    end
+    
+    local prop = CriarProp("Cubo", target)
+    if not prop then return end
+    
+    task.spawn(function()
+        local angle = 0
+        for i = 1, 50 do
+            if not prop or not prop.Parent then break end
+            angle = angle + 30
+            prop.CFrame = prop.CFrame * CFrame.Angles(0, math.rad(angle), 0)
+            task.wait(0.05)
+        end
+    end)
+end)
+
+CreateActionButton("📤 Prop Teleport", function()
+    local target = GetTargetPlayer()
+    if not target or not target.Character then
+        print("❌ Alvo inválido!")
+        return
+    end
+    
+    local prop = CriarProp("Cubo", target)
+    if not prop then return end
+    
+    -- 🔥 TELEPORTA O PROP (E O ALVO) PARA UM LUGAR ALEATÓRIO
+    local randomPos = Vector3.new(
+        math.random(-500, 500),
+        math.random(50, 200),
+        math.random(-500, 500)
+    )
+    
+    prop.CFrame = CFrame.new(randomPos)
+    print("✅ Prop teleportado para " .. tostring(randomPos))
+end)
+
+CreateActionButton("🧹 Remover Todos Props", function()
+    RemoverTodosProps()
+end)
+
+-- =========================================================
+-- 10. TELEPORT
 -- =========================================================
 CreateSectionHeader("📍 TELEPORT")
 
@@ -1141,7 +1403,7 @@ for _, tp in ipairs(teleportPoints) do
 end
 
 -- =========================================================
--- 10. ÁUDIO
+-- 11. ÁUDIO
 -- =========================================================
 CreateSectionHeader("🎵 ÁUDIO")
 
@@ -1195,7 +1457,7 @@ CreateToggleButton("🔄 Loop Áudio", function(state)
 end)
 
 -- =========================================================
--- 11. VEÍCULO
+-- 12. VEÍCULO
 -- =========================================================
 CreateSectionHeader("🚗 VEÍCULO")
 
@@ -1238,7 +1500,7 @@ CreateToggleButton("🌈 Carro RGB", function(state)
 end)
 
 -- =========================================================
--- 12. CASA
+-- 13. CASA
 -- =========================================================
 CreateSectionHeader("🏠 CASA")
 
@@ -1306,7 +1568,7 @@ CreateActionButton("🏠 TP Casa", function()
 end)
 
 -- =========================================================
--- 13. CONFIG
+-- 14. CONFIG
 -- =========================================================
 CreateSectionHeader("⚙️ CONFIG")
 
@@ -1384,7 +1646,7 @@ CreateActionButton("🔒 Shift Lock", function()
 end)
 
 -- =========================================================
--- 14. GRÁFICO LITE
+-- 15. GRÁFICO LITE
 -- =========================================================
 CreateSectionHeader("🎮 GRÁFICO LITE")
 
@@ -1436,7 +1698,7 @@ CreateToggleButton("📉 Gráfico Lite", function(state)
 end)
 
 -- =========================================================
--- 15. HOTKEY
+-- 16. HOTKEY
 -- =========================================================
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end

@@ -1,6 +1,6 @@
 -- =========================================================
--- ⚡ KYLER HUB 3.1 (COMPLETO + TROLL PROP)
--- 🔥 PUXAR SOFÁ + TROLL PROP
+-- ⚡ KYLER HUB 3.1 (VERSÃO LIMPA)
+-- 🔥 SEM PUXAR SOFÁ + SEM TROLL PROP
 -- 💕 Feito com amor pro meu baby
 -- =========================================================
 
@@ -101,7 +101,7 @@ ScrollFrame.Position = UDim2.new(0, 8, 0, 40)
 ScrollFrame.BackgroundTransparency = 1
 ScrollFrame.BorderSizePixel = 0
 ScrollFrame.ScrollBarThickness = 5
-ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 2800)
+ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 2400)
 ScrollFrame.Parent = MainFrame
 
 local UIListLayout = Instance.new("UIListLayout")
@@ -949,439 +949,8 @@ CreateActionButton("🛋️ Fling Sofá", function()
     end)
 end)
 
--- 🔥 PUXAR COM SOFÁ - CORRIGIDO (GIRA E TRAZ O ALVO)
-CreateActionButton("🔄 Puxar com Sofá", function()
-    local target = GetTargetPlayer()
-    if not target then
-        print("❌ Nenhum alvo!")
-        return
-    end
-    
-    if not target.Character or not target.Character:FindFirstChild("HumanoidRootPart") then
-        print("❌ Alvo inválido!")
-        return
-    end
-    
-    local char = LocalPlayer.Character
-    if not char then
-        print("❌ Você sem personagem!")
-        return
-    end
-    
-    local hum = char:FindFirstChildOfClass("Humanoid")
-    local root = char:FindFirstChild("HumanoidRootPart")
-    local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
-    
-    if not hum or not root or not tRoot then
-        print("❌ Componentes não encontrados!")
-        return
-    end
-    
-    -- 🔥 SALVA A POSIÇÃO ORIGINAL DO ALVO
-    local targetOriginalPos = tRoot.CFrame
-    
-    -- 🔥 PEGA O SOFÁ
-    pcall(function()
-        ReplicatedStorage.RE["1Clea1rTool1s"]:FireServer("ClearAllTools")
-        task.wait(0.2)
-        local args = { "PickingTools", "Couch" }
-        ReplicatedStorage.RE:FindFirstChild("1Too1l"):InvokeServer(unpack(args))
-        task.wait(0.3)
-    end)
-    
-    local couch = LocalPlayer.Backpack:FindFirstChild("Couch")
-    if not couch then
-        print("❌ Sofá não encontrado!")
-        return
-    end
-    
-    -- 🔥 PREPARA O SOFÁ
-    couch.Name = "Chaos.Couch"
-    local seat1 = couch:FindFirstChild("Seat1")
-    local seat2 = couch:FindFirstChild("Seat2")
-    local handle = couch:FindFirstChild("Handle")
-    
-    if seat1 and seat2 and handle then
-        seat1.Disabled = true
-        seat2.Disabled = true
-        handle.Name = "Handle "
-    else
-        print("❌ Componentes do sofá não encontrados!")
-        return
-    end
-    couch.Parent = char
-    task.wait(0.2)
-    
-    -- 🔥 SIMULA SENTAR
-    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.F, false, game)
-    task.wait(0.1)
-    
-    -- 🔥 CRIA O BODYVELOCITY PARA PUXAR
-    local tet = Instance.new("BodyVelocity", seat1)
-    tet.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-    tet.P = 1250
-    tet.Velocity = Vector3.new(0, 0, 0)
-    tet.Name = "#mOVOOEPF$#@F$#GERE..>V<<<<EW<V<<W"
-    
-    local targetPlayer = target
-    local angle = 0
-    
-    task.spawn(function()
-        local attempts = 0
-        repeat
-            attempts = attempts + 1
-            
-            -- 🔥 LOOP PARA GIRAR E PUXAR O ALVO
-            for m = 1, 40 do
-                local tRoot = targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart")
-                if not tRoot then 
-                    print("❌ Alvo perdeu o personagem!")
-                    break 
-                end
-                
-                -- 🔥 CALCULA A POSIÇÃO DO ALVO
-                local pos = Vector3.new(
-                    tRoot.Position.X + (tRoot.Velocity.X / 2),
-                    tRoot.Position.Y + (tRoot.Velocity.Y / 2),
-                    tRoot.Position.Z + (tRoot.Velocity.Z / 2)
-                )
-                
-                -- 🔥 GIRA O SOFÁ EM VOLTA DO ALVO
-                angle = angle + 25
-                local radius = 3
-                local circleX = math.cos(math.rad(angle)) * radius
-                local circleZ = math.sin(math.rad(angle)) * radius
-                
-                -- 🔥 MOVE O SOFÁ EM VOLTA DO ALVO
-                seat1.CFrame = CFrame.new(pos + Vector3.new(circleX, 2, circleZ)) * CFrame.Angles(0, math.rad(angle), 0)
-                
-                -- 🔥 APLICA FORÇA NO ALVO PRA SEGUIR O SOFÁ
-                tRoot.AssemblyLinearVelocity = Vector3.new(circleX * 2, 2, circleZ * 2)
-                
-                task.wait()
-            end
-            
-            -- 🔥 RESETA O SOFÁ
-            tet:Destroy()
-            couch.Parent = LocalPlayer.Backpack
-            task.wait()
-            couch:FindFirstChild("Handle ").Name = "Handle"
-            task.wait(0.2)
-            couch.Parent = char
-            task.wait()
-            couch.Parent = LocalPlayer.Backpack
-            couch.Handle.Name = "Handle "
-            task.wait(0.2)
-            couch.Parent = char
-            
-            -- 🔥 RECRIA O BODYVELOCITY
-            tet = Instance.new("BodyVelocity", seat1)
-            tet.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-            tet.P = 1250
-            tet.Velocity = Vector3.new(0, 0, 0)
-            tet.Name = "#mOVOOEPF$#@F$#GERE..>V<<<<EW<V<<W"
-            
-            -- 🔥 VERIFICA SE O ALVO SENTOU
-            local targetHum = targetPlayer.Character and targetPlayer.Character:FindFirstChildOfClass("Humanoid")
-            if targetHum and targetHum.Sit == true then
-                -- 🔥 TRAZ O ALVO PRA PERTO DE VOCÊ
-                local myPos = root.Position
-                tRoot.CFrame = CFrame.new(myPos + Vector3.new(0, 2, 0))
-                print("✅ Alvo trazido para perto!")
-                break
-            end
-            
-            if attempts > 5 then
-                print("⚠️ Alvo não sentou!")
-                break
-            end
-            
-        until targetPlayer.Character and targetPlayer.Character.Humanoid and targetPlayer.Character.Humanoid.Sit == true
-        
-        -- 🔥 FINALIZA
-        task.wait()
-        tet:Destroy()
-        couch.Parent = LocalPlayer.Backpack
-        task.wait()
-        couch:FindFirstChild("Handle ").Name = "Handle"
-        task.wait(0.3)
-        couch.Parent = char
-        task.wait(0.3)
-        couch.Grip = CFrame.new(Vector3.new(0, 0, 0))
-        task.wait(0.3)
-        
-        pcall(function()
-            ReplicatedStorage.RE["1Clea1rTool1s"]:FireServer("ClearAllTools")
-        end)
-        
-        print("✅ Jogador puxado e girado!")
-    end)
-end)
-
 -- =========================================================
--- 9. TROLL PROP
--- =========================================================
-CreateSectionHeader("👿 TROLL PROP")
-
--- 🔥 VARIÁVEIS GLOBAIS
-local propConnections = {}
-
--- 🔥 FUNÇÃO PARA CRIAR UM PROP (OBJETO) EM CIMA DO ALVO
-local function CriarProp(propType, target)
-    if not target or not target.Character then
-        print("❌ Alvo inválido!")
-        return
-    end
-    
-    local targetHRP = target.Character:FindFirstChild("HumanoidRootPart")
-    if not targetHRP then
-        print("❌ Alvo sem HumanoidRootPart!")
-        return
-    end
-    
-    -- 🔥 CRIA O PROP
-    local prop = Instance.new("Part")
-    prop.Size = Vector3.new(3, 3, 3)
-    prop.Material = Enum.Material.SmoothPlastic
-    prop.Anchored = false
-    prop.CanCollide = true
-    prop.Transparency = 0.3
-    
-    -- DEFINE COR E FORMA
-    if propType == "Cubo" then
-        prop.Shape = Enum.PartType.Block
-        prop.BrickColor = BrickColor.new("Bright red")
-        prop.Size = Vector3.new(3, 3, 3)
-    elseif propType == "Bola" then
-        prop.Shape = Enum.PartType.Ball
-        prop.BrickColor = BrickColor.new("Bright blue")
-        prop.Size = Vector3.new(3, 3, 3)
-    elseif propType == "Cilindro" then
-        prop.Shape = Enum.PartType.Cylinder
-        prop.BrickColor = BrickColor.new("Bright green")
-        prop.Size = Vector3.new(2, 4, 2)
-    elseif propType == "Placa" then
-        prop.Shape = Enum.PartType.Block
-        prop.BrickColor = BrickColor.new("Bright yellow")
-        prop.Size = Vector3.new(5, 0.5, 5)
-    elseif propType == "Peso" then
-        prop.Shape = Enum.PartType.Block
-        prop.BrickColor = BrickColor.new("Really black")
-        prop.Size = Vector3.new(2, 2, 2)
-        prop.Mass = 1000
-    elseif propType == "Paredão" then
-        prop.Shape = Enum.PartType.Block
-        prop.BrickColor = BrickColor.new("Bright violet")
-        prop.Size = Vector3.new(10, 10, 1)
-    end
-    
-    prop.Parent = Workspace
-    
-    -- 🔥 CONECTA O PROP AO ALVO
-    local weld = Instance.new("Weld")
-    weld.Part0 = prop
-    weld.Part1 = targetHRP
-    weld.C0 = CFrame.new(0, 3, 0)
-    weld.Parent = prop
-    
-    print("✅ Prop '" .. propType .. "' criado em cima de " .. target.Name)
-    
-    -- 🔥 GUARDA O PROP PARA REMOVER DEPOIS
-    table.insert(propConnections, {Prop = prop, Weld = weld, Target = target})
-    
-    -- 🔥 REMOVE AUTOMATICAMENTE APÓS 10 SEGUNDOS
-    task.delay(10, function()
-        if prop and prop.Parent then
-            prop:Destroy()
-            print("✅ Prop removido automaticamente!")
-        end
-    end)
-    
-    return prop
-end
-
--- 🔥 FUNÇÃO PARA REMOVER TODOS OS PROPS
-local function RemoverTodosProps()
-    for _, data in ipairs(propConnections) do
-        if data.Prop and data.Prop.Parent then
-            data.Prop:Destroy()
-        end
-        if data.Weld and data.Weld.Parent then
-            data.Weld:Destroy()
-        end
-    end
-    propConnections = {}
-    print("✅ Todos os props removidos!")
-end
-
--- 🔥 FUNÇÃO PARA FAZER O PROP PERSEGUIR O ALVO (FLING COM PROP)
-local function PropFling(target, propType)
-    if not target or not target.Character then
-        print("❌ Alvo inválido!")
-        return
-    end
-    
-    local targetHRP = target.Character:FindFirstChild("HumanoidRootPart")
-    if not targetHRP then
-        print("❌ Alvo sem HumanoidRootPart!")
-        return
-    end
-    
-    local prop = CriarProp(propType, target)
-    if not prop then return end
-    
-    -- 🔥 APLICA FLING COM O PROP
-    task.spawn(function()
-        for i = 1, 20 do
-            if not target.Character or not targetHRP.Parent then break end
-            
-            local randomDir = Vector3.new(
-                math.random(-5000, 5000),
-                math.random(3000, 15000),
-                math.random(-5000, 5000)
-            )
-            
-            targetHRP.AssemblyLinearVelocity = randomDir
-            prop.AssemblyLinearVelocity = randomDir
-            
-            if i % 5 == 0 then
-                local humanoid = target.Character:FindFirstChildOfClass("Humanoid")
-                if humanoid then
-                    humanoid.Health = humanoid.Health - 10
-                end
-            end
-            
-            task.wait()
-        end
-        
-        if prop and prop.Parent then
-            prop:Destroy()
-        end
-        print("✅ Prop Fling aplicado em " .. target.Name)
-    end)
-end
-
--- BOTÕES DA ABA TROLL PROP
-CreateActionButton("📦 Cubo na Cabeça", function()
-    local target = GetTargetPlayer()
-    if not target then
-        print("❌ Nenhum alvo!")
-        return
-    end
-    CriarProp("Cubo", target)
-end)
-
-CreateActionButton("⚽ Bola na Cabeça", function()
-    local target = GetTargetPlayer()
-    if not target then
-        print("❌ Nenhum alvo!")
-        return
-    end
-    CriarProp("Bola", target)
-end)
-
-CreateActionButton("🥫 Cilindro na Cabeça", function()
-    local target = GetTargetPlayer()
-    if not target then
-        print("❌ Nenhum alvo!")
-        return
-    end
-    CriarProp("Cilindro", target)
-end)
-
-CreateActionButton("📋 Placa na Cabeça", function()
-    local target = GetTargetPlayer()
-    if not target then
-        print("❌ Nenhum alvo!")
-        return
-    end
-    CriarProp("Placa", target)
-end)
-
-CreateActionButton("⚫ Peso na Cabeça", function()
-    local target = GetTargetPlayer()
-    if not target then
-        print("❌ Nenhum alvo!")
-        return
-    end
-    CriarProp("Peso", target)
-end)
-
-CreateActionButton("🧱 Paredão na Cabeça", function()
-    local target = GetTargetPlayer()
-    if not target then
-        print("❌ Nenhum alvo!")
-        return
-    end
-    CriarProp("Paredão", target)
-end)
-
-CreateActionButton("💥 Cubo Fling", function()
-    local target = GetTargetPlayer()
-    if not target then
-        print("❌ Nenhum alvo!")
-        return
-    end
-    PropFling(target, "Cubo")
-end)
-
-CreateActionButton("💥 Bola Fling", function()
-    local target = GetTargetPlayer()
-    if not target then
-        print("❌ Nenhum alvo!")
-        return
-    end
-    PropFling(target, "Bola")
-end)
-
-CreateActionButton("🌀 Girar Prop", function()
-    local target = GetTargetPlayer()
-    if not target then
-        print("❌ Nenhum alvo!")
-        return
-    end
-    
-    local prop = CriarProp("Cubo", target)
-    if not prop then return end
-    
-    task.spawn(function()
-        local angle = 0
-        for i = 1, 50 do
-            if not prop or not prop.Parent then break end
-            angle = angle + 30
-            prop.CFrame = prop.CFrame * CFrame.Angles(0, math.rad(angle), 0)
-            task.wait(0.05)
-        end
-    end)
-end)
-
-CreateActionButton("📤 Prop Teleport", function()
-    local target = GetTargetPlayer()
-    if not target or not target.Character then
-        print("❌ Alvo inválido!")
-        return
-    end
-    
-    local prop = CriarProp("Cubo", target)
-    if not prop then return end
-    
-    -- 🔥 TELEPORTA O PROP (E O ALVO) PARA UM LUGAR ALEATÓRIO
-    local randomPos = Vector3.new(
-        math.random(-500, 500),
-        math.random(50, 200),
-        math.random(-500, 500)
-    )
-    
-    prop.CFrame = CFrame.new(randomPos)
-    print("✅ Prop teleportado para " .. tostring(randomPos))
-end)
-
-CreateActionButton("🧹 Remover Todos Props", function()
-    RemoverTodosProps()
-end)
-
--- =========================================================
--- 10. TELEPORT
+-- 9. TELEPORT
 -- =========================================================
 CreateSectionHeader("📍 TELEPORT")
 
@@ -1403,7 +972,7 @@ for _, tp in ipairs(teleportPoints) do
 end
 
 -- =========================================================
--- 11. ÁUDIO
+-- 10. ÁUDIO
 -- =========================================================
 CreateSectionHeader("🎵 ÁUDIO")
 
@@ -1457,7 +1026,7 @@ CreateToggleButton("🔄 Loop Áudio", function(state)
 end)
 
 -- =========================================================
--- 12. VEÍCULO
+-- 11. VEÍCULO
 -- =========================================================
 CreateSectionHeader("🚗 VEÍCULO")
 
@@ -1500,7 +1069,7 @@ CreateToggleButton("🌈 Carro RGB", function(state)
 end)
 
 -- =========================================================
--- 13. CASA
+-- 12. CASA
 -- =========================================================
 CreateSectionHeader("🏠 CASA")
 
@@ -1568,7 +1137,7 @@ CreateActionButton("🏠 TP Casa", function()
 end)
 
 -- =========================================================
--- 14. CONFIG
+-- 13. CONFIG
 -- =========================================================
 CreateSectionHeader("⚙️ CONFIG")
 
@@ -1646,7 +1215,7 @@ CreateActionButton("🔒 Shift Lock", function()
 end)
 
 -- =========================================================
--- 15. GRÁFICO LITE
+-- 14. GRÁFICO LITE
 -- =========================================================
 CreateSectionHeader("🎮 GRÁFICO LITE")
 
@@ -1698,7 +1267,7 @@ CreateToggleButton("📉 Gráfico Lite", function(state)
 end)
 
 -- =========================================================
--- 16. HOTKEY
+-- 15. HOTKEY
 -- =========================================================
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end

@@ -1,6 +1,6 @@
 -- =========================================================
 -- ⚡ KYLER HUB 3.1 (COMPLETO E CORRIGIDO)
--- 🔥 FLING SOFÁ FUNCIONANDO + BUSCA POR PARTE DO NOME
+-- 🔥 FLING SOFÁ + PUXAR SOFÁ FUNCIONANDO
 -- 💕 Feito com amor pro meu baby
 -- =========================================================
 
@@ -46,7 +46,6 @@ local MainCorner = Instance.new("UICorner")
 MainCorner.CornerRadius = UDim.new(0, 12)
 MainCorner.Parent = MainFrame
 
--- Barra de Título (menor)
 local TitleBar = Instance.new("Frame")
 TitleBar.Name = "TitleBar"
 TitleBar.Size = UDim2.new(1, 0, 0, 35)
@@ -95,7 +94,6 @@ CloseButton.MouseButton1Click:Connect(function()
     ScreenGui:Destroy()
 end)
 
--- Scroll (mais compacto)
 local ScrollFrame = Instance.new("ScrollingFrame")
 ScrollFrame.Name = "ScrollFrame"
 ScrollFrame.Size = UDim2.new(1, -16, 1, -45)
@@ -112,7 +110,7 @@ UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 UIListLayout.Padding = UDim.new(0, 4)
 
 -- =========================================================
--- 2. COMPONENTES COMPACTOS
+-- 2. COMPONENTES
 -- =========================================================
 local function CreateToggleButton(text, callback)
     local button = Instance.new("TextButton")
@@ -279,7 +277,7 @@ local function CreateTextBox(text, placeholder, callback)
 end
 
 -- =========================================================
--- 3. CAMPO DE SELEÇÃO DE JOGADOR (CORRIGIDO)
+-- 3. SELEÇÃO DE ALVO (BUSCA PELO COMEÇO DO NOME)
 -- =========================================================
 CreateSectionHeader("🎯 ALVO")
 
@@ -296,11 +294,9 @@ local TargetCorner = Instance.new("UICorner")
 TargetCorner.CornerRadius = UDim.new(0, 6)
 TargetCorner.Parent = TargetInput
 
--- 🔥 VARIÁVEIS QUE GUARDAM O ALVO SELECIONADO
 local selectedPlayer = nil
 local selectedPlayerName = nil
 
--- 🔥 FUNÇÃO QUE PROCURA O JOGADOR PELO COMEÇO DO NOME
 local function FindPlayerByPartialName(partial)
     if partial == "" then return nil end
     local partialLower = partial:lower()
@@ -317,7 +313,6 @@ local function FindPlayerByPartialName(partial)
     return nil
 end
 
--- 🔥 FUNÇÃO QUE ATUALIZA O ALVO
 local function UpdateTarget()
     local input = TargetInput.Text
     if input == "" then
@@ -333,7 +328,7 @@ local function UpdateTarget()
         selectedPlayerName = player.Name
         TargetInput.Text = player.Name
         TargetInput.TextColor3 = Color3.fromRGB(0, 255, 0)
-        print("✅ Alvo selecionado: " .. player.Name)
+        print("✅ Alvo: " .. player.Name)
     else
         if selectedPlayer then
             print("⚠️ Nenhum jogador com: " .. input .. " (Mantendo: " .. selectedPlayer.Name .. ")")
@@ -343,25 +338,22 @@ local function UpdateTarget()
     end
 end
 
--- 🔥 ATUALIZA QUANDO O USUÁRIO PARAR DE DIGITAR
 TargetInput.FocusLost:Connect(function()
     UpdateTarget()
 end)
 
--- 🔥 ATUALIZA A CADA LETRA DIGITADA
 TargetInput:GetPropertyChangedSignal("Text"):Connect(function()
     if #TargetInput.Text >= 2 then
         UpdateTarget()
     end
 end)
 
--- 🔥 FUNÇÃO PARA PEGAR O ALVO
 local function GetTargetPlayer()
     return selectedPlayer
 end
 
 -- =========================================================
--- 4. STATUS (COMPACTO)
+-- 4. STATUS
 -- =========================================================
 CreateSectionHeader("📊 STATUS")
 
@@ -459,7 +451,7 @@ CreateActionButton("🔄 Mudar Server", function()
 end)
 
 -- =========================================================
--- 5. JOGADOR (COMPACTO)
+-- 5. JOGADOR
 -- =========================================================
 CreateSectionHeader("🏃 JOGADOR")
 
@@ -512,7 +504,7 @@ CreateSlider("Gravidade", 0, 500, 196, function(val)
 end)
 
 -- =========================================================
--- 6. ESP (COMPACTO)
+-- 6. ESP
 -- =========================================================
 CreateSectionHeader("👁️ ESP")
 
@@ -623,7 +615,7 @@ CreateToggleButton("✨ ESP Holograma", function(state)
 end)
 
 -- =========================================================
--- 7. AVATAR RGB (COMPACTO)
+-- 7. AVATAR RGB
 -- =========================================================
 CreateSectionHeader("🎨 RGB")
 
@@ -679,7 +671,7 @@ end)
 
 CreateActionButton("📋 Copiar Avatar", function()
     if not copyTarget or copyTarget == "" then
-        print("❌ Digite um nome de jogador!")
+        print("❌ Digite um nome!")
         return
     end
     local TPlayer = Players:FindFirstChild(copyTarget)
@@ -733,15 +725,14 @@ CreateActionButton("📋 Copiar Avatar", function()
         end
     end
     
-    print("✅ Avatar copiado de " .. TPlayer.Name)
+    print("✅ Avatar copiado!")
 end)
 
 -- =========================================================
--- 8. FLING SOFÁ CORRIGIDO (BROOKHAVEN)
+-- 8. FLING (CORRIGIDO)
 -- =========================================================
 CreateSectionHeader("🔥 FLING")
 
--- 🔥 FUNÇÃO PARA LIMPAR FERRAMENTAS
 local function cleanupCouch()
     local char = LocalPlayer.Character
     if char then
@@ -755,7 +746,6 @@ local function cleanupCouch()
     end)
 end
 
--- 🔥 FUNÇÃO PARA PEGAR E EQUIPAR O SOFÁ
 local function PegarEEquiparSofa()
     local char = LocalPlayer.Character
     if not char then
@@ -775,7 +765,7 @@ local function PegarEEquiparSofa()
     
     local tool = LocalPlayer.Backpack:FindFirstChild("Couch")
     if not tool then
-        print("❌ Sofá não encontrado no Backpack!")
+        print("❌ Sofá não encontrado!")
         return false
     end
     
@@ -785,18 +775,17 @@ local function PegarEEquiparSofa()
     
     local equipped = char:FindFirstChild("Couch")
     if not equipped then
-        print("❌ Falha ao equipar o sofá!")
+        print("❌ Falha ao equipar!")
         return false
     end
     
     return true
 end
 
--- 🔥 FLING BOLA
 CreateActionButton("⚽ Fling Bola", function()
     local target = GetTargetPlayer()
     if not target then
-        print("❌ Nenhum alvo selecionado!")
+        print("❌ Nenhum alvo!")
         return
     end
     
@@ -818,6 +807,7 @@ CreateActionButton("⚽ Fling Bola", function()
     end
     
     local originalPos = myHRP.CFrame
+    local targetHumanoid = target.Character:FindFirstChildOfClass("Humanoid")
     
     local ball = Instance.new("Part")
     ball.Size = Vector3.new(2, 2, 2)
@@ -831,30 +821,27 @@ CreateActionButton("⚽ Fling Bola", function()
     
     ball.CFrame = targetHRP.CFrame * CFrame.new(0, 2, 0)
     
-    for i = 1, 30 do
+    for i = 1, 25 do
         if not target.Character or not targetHRP.Parent then break end
         
         local randomDir = Vector3.new(
-            math.random(-5000, 5000),
-            math.random(1000, 10000),
-            math.random(-5000, 5000)
+            math.random(-8000, 8000),
+            math.random(3000, 15000),
+            math.random(-8000, 8000)
         )
         
         targetHRP.AssemblyLinearVelocity = randomDir
         targetHRP.AssemblyAngularVelocity = Vector3.new(
-            math.random(-1000, 1000),
-            math.random(-1000, 1000),
-            math.random(-1000, 1000)
+            math.random(-2000, 2000),
+            math.random(-2000, 2000),
+            math.random(-2000, 2000)
         )
         
         ball.CFrame = targetHRP.CFrame * CFrame.new(0, 2, 0)
         ball.AssemblyLinearVelocity = randomDir
         
-        if i % 5 == 0 then
-            local humanoid = target.Character:FindFirstChildOfClass("Humanoid")
-            if humanoid then
-                humanoid.Health = humanoid.Health - 10
-            end
+        if targetHumanoid and i % 5 == 0 then
+            targetHumanoid.Health = targetHumanoid.Health - 10
         end
         
         task.wait()
@@ -864,11 +851,10 @@ CreateActionButton("⚽ Fling Bola", function()
     print("✅ Fling Bola em " .. target.Name)
 end)
 
--- 🔥 FLING SOFÁ
 CreateActionButton("🛋️ Fling Sofá", function()
     local target = GetTargetPlayer()
     if not target then
-        print("❌ Nenhum alvo selecionado!")
+        print("❌ Nenhum alvo!")
         return
     end
     
@@ -888,7 +874,7 @@ CreateActionButton("🛋️ Fling Sofá", function()
     local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
     
     if not hum or not root or not tRoot then
-        print("❌ Componentes necessários não encontrados!")
+        print("❌ Componentes não encontrados!")
         return
     end
     
@@ -949,7 +935,7 @@ CreateActionButton("🛋️ Fling Sofá", function()
         local tool = char:FindFirstChild("Couch")
         if tool then
             tool.Parent = LocalPlayer.Backpack
-            print("✅ Sofá devolvido ao Backpack!")
+            print("✅ Sofá devolvido!")
         end
         
         task.wait(0.01)
@@ -963,11 +949,10 @@ CreateActionButton("🛋️ Fling Sofá", function()
     end)
 end)
 
--- 🔥 PUXAR COM SOFÁ
 CreateActionButton("🔄 Puxar com Sofá", function()
     local target = GetTargetPlayer()
     if not target then
-        print("❌ Nenhum alvo selecionado!")
+        print("❌ Nenhum alvo!")
         return
     end
     
@@ -978,13 +963,15 @@ CreateActionButton("🔄 Puxar com Sofá", function()
     
     pcall(function()
         ReplicatedStorage.RE["1Clea1rTool1s"]:FireServer("ClearAllTools")
+        task.wait(0.2)
         local args = { "PickingTools", "Couch" }
         ReplicatedStorage.RE:FindFirstChild("1Too1l"):InvokeServer(unpack(args))
+        task.wait(0.3)
     end)
     
-    local couch = LocalPlayer.Backpack:WaitForChild("Couch", 3)
+    local couch = LocalPlayer.Backpack:FindFirstChild("Couch")
     if not couch then
-        print("❌ Sofá não encontrado no Backpack!")
+        print("❌ Sofá não encontrado!")
         return
     end
     
@@ -1002,6 +989,10 @@ CreateActionButton("🔄 Puxar com Sofá", function()
         return
     end
     couch.Parent = LocalPlayer.Character
+    task.wait(0.2)
+    
+    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.F, false, game)
+    task.wait(0.1)
     
     local tet = Instance.new("BodyVelocity", seat1)
     tet.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
@@ -1009,19 +1000,29 @@ CreateActionButton("🔄 Puxar com Sofá", function()
     tet.Velocity = Vector3.new(0, 0, 0)
     tet.Name = "#mOVOOEPF$#@F$#GERE..>V<<<<EW<V<<W"
     
+    local targetPlayer = target
+    
     task.spawn(function()
+        local attempts = 0
         repeat
+            attempts = attempts + 1
             for m = 1, 35 do
-                local tRoot = target.Character and target.Character.HumanoidRootPart
-                if not tRoot then break end
+                local tRoot = targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+                if not tRoot then 
+                    print("❌ Alvo perdeu o personagem!")
+                    break 
+                end
+                
                 local pos = Vector3.new(
                     tRoot.Position.X + (tRoot.Velocity.X / 2),
                     tRoot.Position.Y + (tRoot.Velocity.Y / 2),
                     tRoot.Position.Z + (tRoot.Velocity.Z / 2)
                 )
+                
                 seat1.CFrame = CFrame.new(pos) * CFrame.new(-2, 2, 0)
                 task.wait()
             end
+            
             tet:Destroy()
             couch.Parent = LocalPlayer.Backpack
             task.wait()
@@ -1033,12 +1034,24 @@ CreateActionButton("🔄 Puxar com Sofá", function()
             couch.Handle.Name = "Handle "
             task.wait(0.2)
             couch.Parent = LocalPlayer.Character
+            
             tet = Instance.new("BodyVelocity", seat1)
             tet.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
             tet.P = 1250
             tet.Velocity = Vector3.new(0, 0, 0)
             tet.Name = "#mOVOOEPF$#@F$#GERE..>V<<<<EW<V<<W"
-        until target.Character and target.Character.Humanoid and target.Character.Humanoid.Sit == true
+            
+            local targetHum = targetPlayer.Character and targetPlayer.Character:FindFirstChildOfClass("Humanoid")
+            if targetHum and targetHum.Sit == true then
+                break
+            end
+            
+            if attempts > 5 then
+                print("⚠️ Alvo não sentou!")
+                break
+            end
+            
+        until targetPlayer.Character and targetPlayer.Character.Humanoid and targetPlayer.Character.Humanoid.Sit == true
         
         task.wait()
         tet:Destroy()
@@ -1050,15 +1063,17 @@ CreateActionButton("🔄 Puxar com Sofá", function()
         task.wait(0.3)
         couch.Grip = CFrame.new(Vector3.new(0, 0, 0))
         task.wait(0.3)
+        
         pcall(function()
             ReplicatedStorage.RE["1Clea1rTool1s"]:FireServer("ClearAllTools")
         end)
-        print("✅ Jogador puxado com sofá!")
+        
+        print("✅ Jogador puxado!")
     end)
 end)
 
 -- =========================================================
--- 9. TELEPORT (COMPACTO)
+-- 9. TELEPORT
 -- =========================================================
 CreateSectionHeader("📍 TELEPORT")
 
@@ -1080,7 +1095,7 @@ for _, tp in ipairs(teleportPoints) do
 end
 
 -- =========================================================
--- 10. ÁUDIO (COMPACTO)
+-- 10. ÁUDIO
 -- =========================================================
 CreateSectionHeader("🎵 ÁUDIO")
 
@@ -1134,7 +1149,7 @@ CreateToggleButton("🔄 Loop Áudio", function(state)
 end)
 
 -- =========================================================
--- 11. VEÍCULO (COMPACTO)
+-- 11. VEÍCULO
 -- =========================================================
 CreateSectionHeader("🚗 VEÍCULO")
 
@@ -1177,7 +1192,7 @@ CreateToggleButton("🌈 Carro RGB", function(state)
 end)
 
 -- =========================================================
--- 12. CASA (COMPACTO)
+-- 12. CASA
 -- =========================================================
 CreateSectionHeader("🏠 CASA")
 
@@ -1245,7 +1260,7 @@ CreateActionButton("🏠 TP Casa", function()
 end)
 
 -- =========================================================
--- 13. CONFIG (COMPACTO)
+-- 13. CONFIG
 -- =========================================================
 CreateSectionHeader("⚙️ CONFIG")
 
@@ -1323,7 +1338,7 @@ CreateActionButton("🔒 Shift Lock", function()
 end)
 
 -- =========================================================
--- 14. GRÁFICO LITE (COMPACTO)
+-- 14. GRÁFICO LITE
 -- =========================================================
 CreateSectionHeader("🎮 GRÁFICO LITE")
 

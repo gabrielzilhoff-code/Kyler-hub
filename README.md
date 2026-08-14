@@ -1,6 +1,6 @@
 -- =========================================================
--- ⚡ KYLER HUB 3.1 (VERSÃO LIMPA)
--- 🔥 SEM PUXAR SOFÁ + SEM TROLL PROP
+-- ⚡ KYLER HUB 3.1 (VERSÃO CORRIGIDA)
+-- 🔥 SEM OFUSCAÇÃO - EXECUTA EM QUALQUER EXECUTOR
 -- 💕 Feito com amor pro meu baby
 -- =========================================================
 
@@ -13,6 +13,7 @@ local TweenService = game:GetService("TweenService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local TeleportService = game:GetService("TeleportService")
 local HttpService = game:GetService("HttpService")
+local MarketplaceService = game:GetService("MarketplaceService")
 local CoreGui = game:GetService("CoreGui")
 local Lighting = game:GetService("Lighting")
 
@@ -24,7 +25,7 @@ if PlayerGui:FindFirstChild("KylerHubGui") then
 end
 
 -- =========================================================
--- GUI ROOT
+-- 1. GUI PRINCIPAL
 -- =========================================================
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "KylerHubGui"
@@ -41,14 +42,21 @@ MainFrame.Active = true
 MainFrame.Draggable = true
 MainFrame.Parent = ScreenGui
 
-Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 12)
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 12)
+MainCorner.Parent = MainFrame
 
+-- Barra de Título
 local TitleBar = Instance.new("Frame")
+TitleBar.Name = "TitleBar"
 TitleBar.Size = UDim2.new(1, 0, 0, 35)
 TitleBar.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 TitleBar.BorderSizePixel = 0
 TitleBar.Parent = MainFrame
-Instance.new("UICorner", TitleBar).CornerRadius = UDim.new(0, 12)
+
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 12)
+TitleCorner.Parent = TitleBar
 
 local TitleText = Instance.new("TextLabel")
 TitleText.Size = UDim2.new(1, -80, 1, 0)
@@ -61,558 +69,730 @@ TitleText.Font = Enum.Font.SourceSansBold
 TitleText.TextXAlignment = Enum.TextXAlignment.Left
 TitleText.Parent = TitleBar
 
-local MinBtn = Instance.new("TextButton")
-MinBtn.Size = UDim2.new(0, 25, 0, 25)
-MinBtn.Position = UDim2.new(1, -60, 0, 5)
-MinBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-MinBtn.Text = "➖"
-MinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-MinBtn.TextSize = 14
-MinBtn.Parent = TitleBar
-MinBtn.MouseButton1Click:Connect(function() MainFrame.Visible = not MainFrame.Visible end)
+local MinimizeButton = Instance.new("TextButton")
+MinimizeButton.Size = UDim2.new(0, 25, 0, 25)
+MinimizeButton.Position = UDim2.new(1, -60, 0, 5)
+MinimizeButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+MinimizeButton.Text = "➖"
+MinimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinimizeButton.TextSize = 14
+MinimizeButton.Parent = TitleBar
 
-local CloseBtn = Instance.new("TextButton")
-CloseBtn.Size = UDim2.new(0, 25, 0, 25)
-CloseBtn.Position = UDim2.new(1, -32, 0, 5)
-CloseBtn.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
-CloseBtn.Text = "✕"
-CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-CloseBtn.TextSize = 14
-CloseBtn.Parent = TitleBar
-CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
+MinimizeButton.MouseButton1Click:Connect(function()
+    MainFrame.Visible = not MainFrame.Visible
+end)
 
--- =========================================================
--- TAB BAR
--- =========================================================
-local TabBar = Instance.new("Frame")
-TabBar.Size = UDim2.new(1, 0, 0, 28)
-TabBar.Position = UDim2.new(0, 0, 0, 35)
-TabBar.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
-TabBar.BorderSizePixel = 0
-TabBar.Parent = MainFrame
+local CloseButton = Instance.new("TextButton")
+CloseButton.Size = UDim2.new(0, 25, 0, 25)
+CloseButton.Position = UDim2.new(1, -32, 0, 5)
+CloseButton.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
+CloseButton.Text = "✕"
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.TextSize = 14
+CloseButton.Parent = TitleBar
 
-local TabLayout = Instance.new("UIListLayout")
-TabLayout.FillDirection = Enum.FillDirection.Horizontal
-TabLayout.SortOrder = Enum.SortOrder.LayoutOrder
-TabLayout.Padding = UDim.new(0, 2)
-TabLayout.Parent = TabBar
+CloseButton.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
 
-local function MakeScrollFrame()
-    local sf = Instance.new("ScrollingFrame")
-    sf.Size = UDim2.new(1, -16, 1, -72)
-    sf.Position = UDim2.new(0, 8, 0, 68)
-    sf.BackgroundTransparency = 1
-    sf.BorderSizePixel = 0
-    sf.ScrollBarThickness = 5
-    sf.CanvasSize = UDim2.new(0, 0, 0, 3200)
-    sf.Visible = false
-    sf.Parent = MainFrame
-    local layout = Instance.new("UIListLayout")
-    layout.SortOrder = Enum.SortOrder.LayoutOrder
-    layout.Padding = UDim.new(0, 4)
-    layout.Parent = sf
-    return sf
-end
+-- ScrollFrame
+local ScrollFrame = Instance.new("ScrollingFrame")
+ScrollFrame.Name = "ScrollFrame"
+ScrollFrame.Size = UDim2.new(1, -16, 1, -45)
+ScrollFrame.Position = UDim2.new(0, 8, 0, 40)
+ScrollFrame.BackgroundTransparency = 1
+ScrollFrame.BorderSizePixel = 0
+ScrollFrame.ScrollBarThickness = 5
+ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 2800)
+ScrollFrame.Parent = MainFrame
 
-local ScrollMain  = MakeScrollFrame()
-local ScrollTroll = MakeScrollFrame()
-ScrollMain.Visible = true
-
-local function MakeTab(text, key, order)
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0, 100, 1, 0)
-    btn.BackgroundColor3 = key == "main" and Color3.fromRGB(170,85,255) or Color3.fromRGB(30,30,35)
-    btn.TextColor3 = Color3.fromRGB(255,255,255)
-    btn.Text = text
-    btn.Font = Enum.Font.SourceSansBold
-    btn.TextSize = 12
-    btn.BorderSizePixel = 0
-    btn.LayoutOrder = order
-    btn.Parent = TabBar
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
-    return btn
-end
-
-local TabMain  = MakeTab("⚙️ Principal", "main",  1)
-local TabTroll = MakeTab("😈 Troll",     "troll", 2)
-
-local function SwitchTab(key)
-    ScrollMain.Visible  = key == "main"
-    ScrollTroll.Visible = key == "troll"
-    TabMain.BackgroundColor3  = key == "main"  and Color3.fromRGB(170,85,255) or Color3.fromRGB(30,30,35)
-    TabTroll.BackgroundColor3 = key == "troll" and Color3.fromRGB(170,85,255) or Color3.fromRGB(30,30,35)
-end
-TabMain.MouseButton1Click:Connect(function()  SwitchTab("main")  end)
-TabTroll.MouseButton1Click:Connect(function() SwitchTab("troll") end)
+local UIListLayout = Instance.new("UIListLayout")
+UIListLayout.Parent = ScrollFrame
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+UIListLayout.Padding = UDim.new(0, 4)
 
 -- =========================================================
--- COMPONENTES
+-- 2. COMPONENTES
 -- =========================================================
-local function CreateToggleButton(parent, text, callback)
+local function CreateToggleButton(text, callback)
     local button = Instance.new("TextButton")
     button.Size = UDim2.new(1, -8, 0, 30)
-    button.BackgroundColor3 = Color3.fromRGB(30,30,35)
+    button.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
     button.Text = text .. " [OFF]"
-    button.TextColor3 = Color3.fromRGB(200,200,200)
+    button.TextColor3 = Color3.fromRGB(200, 200, 200)
     button.Font = Enum.Font.SourceSans
     button.TextSize = 13
-    button.Parent = parent
-    Instance.new("UICorner", button).CornerRadius = UDim.new(0,6)
+    button.Parent = ScrollFrame
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = button
+
     local state = false
     button.MouseButton1Click:Connect(function()
         state = not state
-        button.Text = text .. (state and " [ON]" or " [OFF]")
-        button.TextColor3 = state and Color3.fromRGB(170,85,255) or Color3.fromRGB(200,200,200)
-        button.BackgroundColor3 = state and Color3.fromRGB(45,35,55) or Color3.fromRGB(30,30,35)
+        button.Text = state and (text .. " [ON]") or (text .. " [OFF]")
+        button.TextColor3 = state and Color3.fromRGB(170, 85, 255) or Color3.fromRGB(200, 200, 200)
+        button.BackgroundColor3 = state and Color3.fromRGB(45, 35, 55) or Color3.fromRGB(30, 30, 35)
         callback(state)
     end)
     return button
 end
 
-local function CreateSlider(parent, text, min, max, default, callback)
+local function CreateSlider(text, min, max, default, callback)
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(1,-8,0,40)
-    frame.BackgroundColor3 = Color3.fromRGB(30,30,35)
-    frame.Parent = parent
-    Instance.new("UICorner", frame).CornerRadius = UDim.new(0,6)
+    frame.Size = UDim2.new(1, -8, 0, 40)
+    frame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+    frame.Parent = ScrollFrame
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = frame
+
     local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1,0,0,18)
+    label.Size = UDim2.new(1, 0, 0, 18)
     label.BackgroundTransparency = 1
-    label.Text = text..": "..tostring(default)
-    label.TextColor3 = Color3.fromRGB(220,220,220)
+    label.Text = text .. ": " .. tostring(default)
+    label.TextColor3 = Color3.fromRGB(220, 220, 220)
     label.Font = Enum.Font.SourceSans
     label.TextSize = 12
     label.Parent = frame
+
     local button = Instance.new("TextButton")
-    button.Size = UDim2.new(1,-16,0,10)
-    button.Position = UDim2.new(0,8,0,22)
-    button.BackgroundColor3 = Color3.fromRGB(50,50,50)
+    button.Size = UDim2.new(1, -16, 0, 10)
+    button.Position = UDim2.new(0, 8, 0, 22)
+    button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
     button.Text = ""
     button.Parent = frame
+
     local fill = Instance.new("Frame")
-    fill.Size = UDim2.new((default-min)/(max-min),0,1,0)
-    fill.BackgroundColor3 = Color3.fromRGB(170,85,255)
+    fill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
+    fill.BackgroundColor3 = Color3.fromRGB(170, 85, 255)
     fill.BorderSizePixel = 0
     fill.Parent = button
+
     local dragging = false
+    
     local function update(input)
-        if not input or not button.AbsoluteSize then return end
-        local pos = math.clamp((input.Position.X - button.AbsolutePosition.X)/button.AbsoluteSize.X, 0, 1)
-        fill.Size = UDim2.new(pos,0,1,0)
-        local value = math.floor(min + (max-min)*pos)
-        label.Text = text..": "..tostring(value)
+        if not input or not button or not button.AbsoluteSize then return end
+        local pos = math.clamp((input.Position.X - button.AbsolutePosition.X) / button.AbsoluteSize.X, 0, 1)
+        fill.Size = UDim2.new(pos, 0, 1, 0)
+        local value = math.floor(min + (max - min) * pos)
+        label.Text = text .. ": " .. tostring(value)
         callback(value)
     end
-    button.InputBegan:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 then dragging=true update(i) end end)
-    button.InputEnded:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 then dragging=false end end)
-    local c = UserInputService.InputChanged:Connect(function(i)
-        if dragging and i.UserInputType == Enum.UserInputType.MouseMovement then update(i) end
+
+    button.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then 
+            dragging = true 
+            update(input) 
+        end
     end)
-    frame.AncestryChanged:Connect(function() if not frame.Parent and c then c:Disconnect() end end)
+    
+    button.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then 
+            dragging = false 
+        end
+    end)
+    
+    local changedConnection
+    changedConnection = UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then 
+            update(input) 
+        end
+    end)
+    
+    frame.AncestryChanged:Connect(function()
+        if not frame.Parent then
+            if changedConnection then changedConnection:Disconnect() end
+        end
+    end)
 end
 
-local function CreateSectionHeader(parent, text)
+local function CreateSectionHeader(text)
     local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1,-8,0,22)
+    label.Size = UDim2.new(1, -8, 0, 22)
     label.BackgroundTransparency = 1
     label.Text = text
-    label.TextColor3 = Color3.fromRGB(180,120,255)
+    label.TextColor3 = Color3.fromRGB(180, 120, 255)
     label.Font = Enum.Font.SourceSansBold
     label.TextSize = 14
-    label.Parent = parent
+    label.Parent = ScrollFrame
 end
 
-local function CreateActionButton(parent, text, callback)
+local function CreateActionButton(text, callback)
     local button = Instance.new("TextButton")
-    button.Size = UDim2.new(1,-8,0,28)
-    button.BackgroundColor3 = Color3.fromRGB(40,35,45)
+    button.Size = UDim2.new(1, -8, 0, 28)
+    button.BackgroundColor3 = Color3.fromRGB(40, 35, 45)
     button.Text = text
-    button.TextColor3 = Color3.fromRGB(240,240,240)
+    button.TextColor3 = Color3.fromRGB(240, 240, 240)
     button.Font = Enum.Font.SourceSans
     button.TextSize = 12
-    button.Parent = parent
-    Instance.new("UICorner", button).CornerRadius = UDim.new(0,6)
+    button.Parent = ScrollFrame
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = button
+
     button.MouseButton1Click:Connect(callback)
     return button
 end
 
-local function CreateTextBox(parent, text, placeholder, callback)
+local function CreateTextBox(text, placeholder, callback)
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(1,-8,0,32)
-    frame.BackgroundColor3 = Color3.fromRGB(30,30,35)
-    frame.Parent = parent
-    Instance.new("UICorner", frame).CornerRadius = UDim.new(0,6)
+    frame.Size = UDim2.new(1, -8, 0, 32)
+    frame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+    frame.Parent = ScrollFrame
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = frame
+    
     local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(0.4,0,1,0)
+    label.Size = UDim2.new(0.4, 0, 1, 0)
     label.BackgroundTransparency = 1
     label.Text = text
-    label.TextColor3 = Color3.fromRGB(200,200,200)
+    label.TextColor3 = Color3.fromRGB(200, 200, 200)
     label.Font = Enum.Font.SourceSans
     label.TextSize = 12
     label.Parent = frame
+    
     local box = Instance.new("TextBox")
-    box.Size = UDim2.new(0.55,-8,0.8,0)
-    box.Position = UDim2.new(0.4,0,0.1,0)
-    box.BackgroundColor3 = Color3.fromRGB(50,50,55)
-    box.TextColor3 = Color3.fromRGB(255,255,255)
-    box.PlaceholderColor3 = Color3.fromRGB(150,150,150)
+    box.Size = UDim2.new(0.55, -8, 0.8, 0)
+    box.Position = UDim2.new(0.4, 0, 0.1, 0)
+    box.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+    box.TextColor3 = Color3.fromRGB(255, 255, 255)
+    box.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
     box.PlaceholderText = placeholder
     box.Font = Enum.Font.SourceSans
     box.TextSize = 12
     box.Parent = frame
-    Instance.new("UICorner", box).CornerRadius = UDim.new(0,6)
-    box.FocusLost:Connect(function() callback(box.Text) end)
+    
+    local boxCorner = Instance.new("UICorner")
+    boxCorner.CornerRadius = UDim.new(0, 6)
+    boxCorner.Parent = box
+    
+    box.FocusLost:Connect(function()
+        callback(box.Text)
+    end)
     return box
 end
 
 -- =========================================================
--- ALVO (compartilhado entre abas)
+-- 3. SELEÇÃO DE ALVO (BUSCA PELO COMEÇO DO NOME)
 -- =========================================================
-CreateSectionHeader(ScrollMain, "🎯 ALVO")
+CreateSectionHeader("🎯 ALVO")
 
 local TargetInput = Instance.new("TextBox")
-TargetInput.Size = UDim2.new(1,-8,0,30)
-TargetInput.BackgroundColor3 = Color3.fromRGB(40,40,45)
+TargetInput.Size = UDim2.new(1, -8, 0, 30)
+TargetInput.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
 TargetInput.PlaceholderText = "Digite o começo do nome..."
-TargetInput.TextColor3 = Color3.fromRGB(255,255,255)
+TargetInput.TextColor3 = Color3.fromRGB(255, 255, 255)
 TargetInput.Font = Enum.Font.SourceSans
 TargetInput.TextSize = 13
-TargetInput.Parent = ScrollMain
-Instance.new("UICorner", TargetInput).CornerRadius = UDim.new(0,6)
+TargetInput.Parent = ScrollFrame
+
+local TargetCorner = Instance.new("UICorner")
+TargetCorner.CornerRadius = UDim.new(0, 6)
+TargetCorner.Parent = TargetInput
 
 local selectedPlayer = nil
+local selectedPlayerName = nil
 
 local function FindPlayerByPartialName(partial)
     if partial == "" then return nil end
-    local pl = partial:lower()
+    local partialLower = partial:lower()
     for _, p in pairs(Players:GetPlayers()) do
         if p ~= LocalPlayer then
-            if p.Name:lower():sub(1,#pl) == pl or p.DisplayName:lower():sub(1,#pl) == pl then
+            local nameLower = p.Name:lower()
+            local displayLower = p.DisplayName:lower()
+            if nameLower:sub(1, #partialLower) == partialLower or 
+               displayLower:sub(1, #partialLower) == partialLower then
                 return p
             end
         end
     end
+    return nil
 end
 
 local function UpdateTarget()
     local input = TargetInput.Text
-    if input == "" then selectedPlayer = nil return end
+    if input == "" then
+        selectedPlayer = nil
+        selectedPlayerName = nil
+        print("❌ Nenhum alvo selecionado")
+        return
+    end
+    
     local player = FindPlayerByPartialName(input)
     if player then
         selectedPlayer = player
+        selectedPlayerName = player.Name
         TargetInput.Text = player.Name
-        TargetInput.TextColor3 = Color3.fromRGB(0,255,0)
+        TargetInput.TextColor3 = Color3.fromRGB(0, 255, 0)
+        print("✅ Alvo: " .. player.Name)
+    else
+        if selectedPlayer then
+            print("⚠️ Nenhum jogador com: " .. input .. " (Mantendo: " .. selectedPlayer.Name .. ")")
+        else
+            print("❌ Nenhum jogador com: " .. input)
+        end
     end
 end
 
-TargetInput.FocusLost:Connect(UpdateTarget)
-TargetInput:GetPropertyChangedSignal("Text"):Connect(function()
-    if #TargetInput.Text >= 2 then UpdateTarget() end
+TargetInput.FocusLost:Connect(function()
+    UpdateTarget()
 end)
 
-local function GetTarget() return selectedPlayer end
+TargetInput:GetPropertyChangedSignal("Text"):Connect(function()
+    if #TargetInput.Text >= 2 then
+        UpdateTarget()
+    end
+end)
+
+local function GetTargetPlayer()
+    return selectedPlayer
+end
 
 -- =========================================================
--- STATUS
+-- 4. STATUS
 -- =========================================================
-CreateSectionHeader(ScrollMain, "📊 STATUS")
+CreateSectionHeader("📊 STATUS")
 
 local startTime = tick()
 local playTimeLabel = Instance.new("TextLabel")
-playTimeLabel.Size = UDim2.new(1,-8,0,20)
+playTimeLabel.Size = UDim2.new(1, -8, 0, 20)
 playTimeLabel.BackgroundTransparency = 1
 playTimeLabel.Text = "⏱️ 00:00"
-playTimeLabel.TextColor3 = Color3.fromRGB(200,200,200)
+playTimeLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
 playTimeLabel.Font = Enum.Font.SourceSans
 playTimeLabel.TextSize = 12
-playTimeLabel.Parent = ScrollMain
+playTimeLabel.Parent = ScrollFrame
 
 task.spawn(function()
     while true do
         task.wait(1)
-        local e = math.floor(tick()-startTime)
-        playTimeLabel.Text = string.format("⏱️ %02d:%02d", math.floor(e/60), e%60)
+        local elapsed = math.floor(tick() - startTime)
+        local minutes = math.floor(elapsed / 60)
+        local seconds = elapsed % 60
+        playTimeLabel.Text = string.format("⏱️ %02d:%02d", minutes, seconds)
     end
 end)
 
 local playersOnlineLabel = Instance.new("TextLabel")
-playersOnlineLabel.Size = UDim2.new(1,-8,0,20)
+playersOnlineLabel.Size = UDim2.new(1, -8, 0, 20)
 playersOnlineLabel.BackgroundTransparency = 1
-playersOnlineLabel.Text = "👥 0/"..Players.MaxPlayers
-playersOnlineLabel.TextColor3 = Color3.fromRGB(200,200,200)
+playersOnlineLabel.Text = "👥 Jogadores: 0/" .. game.Players.MaxPlayers
+playersOnlineLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
 playersOnlineLabel.Font = Enum.Font.SourceSans
 playersOnlineLabel.TextSize = 12
-playersOnlineLabel.Parent = ScrollMain
+playersOnlineLabel.Parent = ScrollFrame
 
 task.spawn(function()
     while true do
         task.wait(1)
-        playersOnlineLabel.Text = "👥 Jogadores: "..#Players:GetPlayers().."/"..Players.MaxPlayers
+        playersOnlineLabel.Text = "👥 Jogadores: " .. #Players:GetPlayers() .. "/" .. game.Players.MaxPlayers
     end
 end)
 
+local executorName = identifyexecutor and identifyexecutor() or "Desconhecido"
 local executorLabel = Instance.new("TextLabel")
-executorLabel.Size = UDim2.new(1,-8,0,20)
+executorLabel.Size = UDim2.new(1, -8, 0, 20)
 executorLabel.BackgroundTransparency = 1
-executorLabel.Text = "⚡ Executor: "..(identifyexecutor and identifyexecutor() or "Desconhecido")
-executorLabel.TextColor3 = Color3.fromRGB(200,200,200)
+executorLabel.Text = "⚡ Executor: " .. executorName
+executorLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
 executorLabel.Font = Enum.Font.SourceSans
 executorLabel.TextSize = 12
-executorLabel.Parent = ScrollMain
+executorLabel.Parent = ScrollFrame
 
-CreateActionButton(ScrollMain, "🔄 Reconectar", function()
+CreateActionButton("🔄 Reconectar", function()
     TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId)
 end)
 
-CreateActionButton(ScrollMain, "👥 Server Cheio", function()
+CreateActionButton("👥 Server Cheio", function()
     local PlaceId = game.PlaceId
     local Api = "https://games.roblox.com/v1/games/"..PlaceId.."/servers/Public?sortOrder=Desc&limit=100"
+    
     local function FindServer()
-        local cursor
+        local cursor = nil
         repeat
-            local data = HttpService:JSONDecode(game:HttpGet(Api..(cursor and "&cursor="..cursor or "")))
-            for _, s in pairs(data.data) do
-                if s.playing < s.maxPlayers and s.playing >= 21 then return s.id end
+            local url = Api .. (cursor and "&cursor="..cursor or "")
+            local data = HttpService:JSONDecode(game:HttpGet(url))
+            for _, server in pairs(data.data) do
+                if server.playing < server.maxPlayers and server.playing >= 21 then
+                    return server.id
+                end
             end
             cursor = data.nextPageCursor
         until not cursor
     end
-    local id = FindServer()
-    if id then TeleportService:TeleportToPlaceInstance(PlaceId, id, LocalPlayer) end
+    
+    local serverId = FindServer()
+    if serverId then
+        TeleportService:TeleportToPlaceInstance(PlaceId, serverId, LocalPlayer)
+    end
 end)
 
-CreateActionButton(ScrollMain, "🔄 Mudar Server", function()
+CreateActionButton("🔄 Mudar Server", function()
     local _place = game.PlaceId
-    local _url = "https://games.roblox.com/v1/games/".._place.."/servers/Public?sortOrder=Asc&limit=100"
+    local _servers = "https://games.roblox.com/v1/games/".._place.."/servers/Public?sortOrder=Asc&limit=100"
+    
+    function ListServers(cursor)
+        local Raw = game:HttpGet(_servers .. ((cursor and "&cursor="..cursor) or ""))
+        return HttpService:JSONDecode(Raw)
+    end
+    
     local Server, Next
     repeat
-        local data = HttpService:JSONDecode(game:HttpGet(_url..(Next and "&cursor="..Next or "")))
-        Server = data.data[1]
-        Next = data.nextPageCursor
+        local Servers = ListServers(Next)
+        Server = Servers.data[1]
+        Next = Servers.nextPageCursor
     until Server
+    
     TeleportService:TeleportToPlaceInstance(_place, Server.id, LocalPlayer)
 end)
 
 -- =========================================================
--- JOGADOR
+-- 5. JOGADOR
 -- =========================================================
-CreateSectionHeader(ScrollMain, "🏃 JOGADOR")
+CreateSectionHeader("🏃 JOGADOR")
 
-CreateActionButton(ScrollMain, "🕊️ Fly", function()
+CreateActionButton("🕊️ Fly", function()
     loadstring(game:HttpGet("https://pastebin.com/raw/QjjQvMsE"))()
 end)
 
 local noclipActive = false
-local noclipConn = nil
-CreateToggleButton(ScrollMain, "🚪 Noclip", function(state)
+local noclipConnection = nil
+
+CreateToggleButton("🚪 Noclip", function(state)
     noclipActive = state
-    if noclipConn then noclipConn:Disconnect() noclipConn = nil end
+    if noclipConnection then
+        noclipConnection:Disconnect()
+        noclipConnection = nil
+    end
     if noclipActive then
-        noclipConn = RunService.Stepped:Connect(function()
-            if not LocalPlayer.Character then return end
+        noclipConnection = RunService.Stepped:Connect(function()
+            if not noclipActive or not LocalPlayer.Character then return end
             for _, v in pairs(LocalPlayer.Character:GetDescendants()) do
-                if v:IsA("BasePart") then v.CanCollide = false end
+                if v:IsA("BasePart") then
+                    v.CanCollide = false
+                end
             end
         end)
     end
 end)
 
-CreateSlider(ScrollMain, "Velocidade", 1, 200, 16, function(val)
-    local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-    if hum then hum.WalkSpeed = val end
+local currentWalkSpeed = 16
+CreateSlider("Velocidade", 1, 200, 16, function(val)
+    currentWalkSpeed = val
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.WalkSpeed = val
+    end
 end)
 
-CreateSlider(ScrollMain, "Pulo", 1, 500, 50, function(val)
-    local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-    if hum then hum.UseJumpPower = true hum.JumpPower = val end
+local currentJumpPower = 50
+CreateSlider("Pulo", 1, 500, 50, function(val)
+    currentJumpPower = val
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.UseJumpPower = true
+        LocalPlayer.Character.Humanoid.JumpPower = val
+    end
 end)
 
-CreateSlider(ScrollMain, "Gravidade", 0, 500, 196, function(val)
+local currentGravity = 196.2
+CreateSlider("Gravidade", 0, 500, 196, function(val)
+    currentGravity = val
     Workspace.Gravity = val
 end)
 
 -- =========================================================
--- ESP
+-- 6. ESP
 -- =========================================================
-CreateSectionHeader(ScrollMain, "👁️ ESP")
+CreateSectionHeader("👁️ ESP")
 
 local espActive = false
-local espConn = nil
-CreateToggleButton(ScrollMain, "👤 ESP Nome", function(state)
+local espConnection = nil
+
+CreateToggleButton("👤 ESP Nome", function(state)
     espActive = state
-    if espConn then espConn:Disconnect() espConn = nil end
+    if espConnection then
+        espConnection:Disconnect()
+        espConnection = nil
+    end
     if espActive then
-        espConn = RunService.Heartbeat:Connect(function()
+        espConnection = RunService.Heartbeat:Connect(function()
             local localChar = LocalPlayer.Character
             if not localChar or not localChar:FindFirstChild("Head") then return end
+            
             for _, player in ipairs(Players:GetPlayers()) do
                 if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
                     local head = player.Character.Head
-                    local dist = (localChar.Head.Position - head.Position).Magnitude
-                    local bg = head:FindFirstChild("KylerESP")
-                    if not bg then
-                        bg = Instance.new("BillboardGui")
-                        bg.Name = "KylerESP"
-                        bg.Adornee = head
-                        bg.Size = UDim2.new(0,100,0,40)
-                        bg.StudsOffset = Vector3.new(0,2,0)
-                        bg.AlwaysOnTop = true
-                        bg.Parent = head
-                        local lbl = Instance.new("TextLabel")
-                        lbl.Name = "NameLabel"
-                        lbl.Size = UDim2.new(1,0,1,0)
-                        lbl.BackgroundTransparency = 1
-                        lbl.TextColor3 = Color3.fromRGB(170,85,255)
-                        lbl.TextStrokeColor3 = Color3.new(0,0,0)
-                        lbl.TextStrokeTransparency = 0
-                        lbl.TextScaled = true
-                        lbl.Text = player.Name.."\n"..math.floor(dist).."m"
-                        lbl.Parent = bg
+                    local distance = (localChar.Head.Position - head.Position).Magnitude
+                    
+                    local billboardGui = head:FindFirstChild("KylerESP")
+                    if not billboardGui then
+                        billboardGui = Instance.new("BillboardGui")
+                        billboardGui.Name = "KylerESP"
+                        billboardGui.Adornee = head
+                        billboardGui.Size = UDim2.new(0, 100, 0, 40)
+                        billboardGui.StudsOffset = Vector3.new(0, 2, 0)
+                        billboardGui.AlwaysOnTop = true
+                        billboardGui.Parent = head
+                        
+                        local textLabel = Instance.new("TextLabel")
+                        textLabel.Name = "NameLabel"
+                        textLabel.Size = UDim2.new(1, 0, 1, 0)
+                        textLabel.BackgroundTransparency = 1
+                        textLabel.TextColor3 = Color3.fromRGB(170, 85, 255)
+                        textLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
+                        textLabel.TextStrokeTransparency = 0
+                        textLabel.TextScaled = true
+                        textLabel.Text = player.Name .. "\n" .. math.floor(distance) .. "m"
+                        textLabel.Parent = billboardGui
                     else
-                        local lbl = bg:FindFirstChild("NameLabel")
-                        if lbl then lbl.Text = player.Name.."\n"..math.floor(dist).."m" end
+                        local label = billboardGui:FindFirstChild("NameLabel")
+                        if label then
+                            label.Text = player.Name .. "\n" .. math.floor(distance) .. "m"
+                        end
                     end
                 end
             end
         end)
     else
-        for _, p in ipairs(Players:GetPlayers()) do
-            if p.Character and p.Character:FindFirstChild("Head") then
-                local t = p.Character.Head:FindFirstChild("KylerESP")
-                if t then t:Destroy() end
+        for _, player in ipairs(Players:GetPlayers()) do
+            if player.Character and player.Character:FindFirstChild("Head") then
+                local tag = player.Character.Head:FindFirstChild("KylerESP")
+                if tag then tag:Destroy() end
             end
         end
     end
 end)
 
-local hlStorage = nil
-local hlConns = {}
-CreateToggleButton(ScrollMain, "✨ ESP Holograma", function(state)
-    if not state and hlStorage then
-        hlStorage:Destroy() hlStorage = nil
-        for _, c in pairs(hlConns) do if c and c.Disconnect then c:Disconnect() end end
-        hlConns = {}
+local espHighlightActive = false
+local highlightStorage = nil
+local highlightConnections = {}
+
+CreateToggleButton("✨ ESP Holograma", function(state)
+    espHighlightActive = state
+    if not espHighlightActive and highlightStorage then
+        highlightStorage:Destroy()
+        highlightStorage = nil
+        for _, conn in pairs(highlightConnections) do
+            if conn and conn.Disconnect then conn:Disconnect() end
+        end
+        highlightConnections = {}
         return
     end
-    if state then
-        hlStorage = Instance.new("Folder")
-        hlStorage.Name = "KylerHighlightStorage"
-        hlStorage.Parent = CoreGui
-        local function HP(plr)
+    
+    if espHighlightActive then
+        highlightStorage = Instance.new("Folder")
+        highlightStorage.Name = "KylerHighlightStorage"
+        highlightStorage.Parent = CoreGui
+        
+        local function HighlightPlayer(plr)
             if plr == LocalPlayer then return end
-            local hl = Instance.new("Highlight")
-            hl.Name = plr.Name
-            hl.FillColor = Color3.fromRGB(170,85,255)
-            hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-            hl.FillTransparency = 0.5
-            hl.OutlineColor = Color3.fromRGB(0,0,0)
-            hl.OutlineTransparency = 0
-            hl.Parent = hlStorage
-            if plr.Character then hl.Adornee = plr.Character end
-            hlConns[plr] = plr.CharacterAdded:Connect(function(c) hl.Adornee = c end)
+            local highlight = Instance.new("Highlight")
+            highlight.Name = plr.Name
+            highlight.FillColor = Color3.fromRGB(170, 85, 255)
+            highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+            highlight.FillTransparency = 0.5
+            highlight.OutlineColor = Color3.fromRGB(0, 0, 0)
+            highlight.OutlineTransparency = 0
+            highlight.Parent = highlightStorage
+            
+            if plr.Character then
+                highlight.Adornee = plr.Character
+            end
+            
+            highlightConnections[plr] = plr.CharacterAdded:Connect(function(char)
+                highlight.Adornee = char
+            end)
         end
-        hlConns["_pa"] = Players.PlayerAdded:Connect(HP)
-        for _, v in ipairs(Players:GetPlayers()) do HP(v) end
+        
+        highlightConnections["_PlayerAdded"] = Players.PlayerAdded:Connect(HighlightPlayer)
+        for _, v in ipairs(Players:GetPlayers()) do
+            HighlightPlayer(v)
+        end
     end
 end)
 
 -- =========================================================
--- RGB
+-- 7. AVATAR RGB
 -- =========================================================
-CreateSectionHeader(ScrollMain, "🎨 RGB")
+CreateSectionHeader("🎨 RGB")
 
-CreateToggleButton(ScrollMain, "🌈 Nome RGB", function(state)
-    if not state then return end
-    task.spawn(function()
-        local colors = {
-            Color3.fromRGB(255,0,0), Color3.fromRGB(255,102,0), Color3.fromRGB(255,255,0),
-            Color3.fromRGB(0,255,0), Color3.fromRGB(0,255,255), Color3.fromRGB(0,102,255),
-            Color3.fromRGB(153,0,255), Color3.fromRGB(255,0,255)
-        }
-        local i = 1
-        while state do
-            pcall(function()
-                local r = ReplicatedStorage:FindFirstChild("RE") and ReplicatedStorage.RE:FindFirstChild("1RPNam1eColo1r")
-                if r then r:FireServer("PickingRPNameColor", colors[i]) end
-            end)
-            i = i % #colors + 1
-            task.wait(0.3)
-        end
-    end)
+CreateToggleButton("🌈 Nome RGB", function(state)
+    if state then
+        task.spawn(function()
+            local colors = {
+                Color3.fromRGB(255,0,0), Color3.fromRGB(255,102,0), Color3.fromRGB(255,255,0),
+                Color3.fromRGB(0,255,0), Color3.fromRGB(0,255,255), Color3.fromRGB(0,102,255),
+                Color3.fromRGB(153,0,255), Color3.fromRGB(255,0,255)
+            }
+            local i = 1
+            while state do
+                if not state then return end
+                pcall(function()
+                    local remote = ReplicatedStorage:FindFirstChild("RE") and ReplicatedStorage.RE:FindFirstChild("1RPNam1eColo1r")
+                    if remote then
+                        remote:FireServer("PickingRPNameColor", colors[i])
+                    end
+                end)
+                i = i % #colors + 1
+                task.wait(0.3)
+            end
+        end)
+    end
 end)
 
-CreateToggleButton(ScrollMain, "🌈 Corpo RGB", function(state)
-    if not state then return end
-    task.spawn(function()
-        local colors = {"Bright red","Lime green","Bright blue","Bright yellow","Bright cyan","Hot pink"}
-        local i = 1
-        while state do
-            pcall(function()
-                local r = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("ChangeBodyColor")
-                if r then r:FireServer(colors[i]) end
-            end)
-            i = i % #colors + 1
-            task.wait(0.5)
-        end
-    end)
+CreateToggleButton("🌈 Corpo RGB", function(state)
+    if state then
+        task.spawn(function()
+            local colors = {"Bright red", "Lime green", "Bright blue", "Bright yellow", "Bright cyan", "Hot pink"}
+            local i = 1
+            while state do
+                if not state then return end
+                pcall(function()
+                    local remote = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("ChangeBodyColor")
+                    if remote then
+                        remote:FireServer(colors[i])
+                    end
+                end)
+                i = i % #colors + 1
+                task.wait(0.5)
+            end
+        end)
+    end
 end)
 
 local copyTarget = nil
-CreateTextBox(ScrollMain, "Alvo copiar", "Nome do jogador", function(v) copyTarget = v end)
 
-CreateActionButton(ScrollMain, "📋 Copiar Avatar", function()
-    if not copyTarget or copyTarget == "" then return end
+CreateTextBox("Alvo para copiar", "Digite o nome", function(value)
+    copyTarget = value
+end)
+
+CreateActionButton("📋 Copiar Avatar", function()
+    if not copyTarget or copyTarget == "" then
+        print("❌ Digite um nome!")
+        return
+    end
     local TPlayer = Players:FindFirstChild(copyTarget)
-    if not TPlayer or not TPlayer.Character then return end
+    if not TPlayer or not TPlayer.Character then
+        print("❌ Jogador não encontrado!")
+        return
+    end
+    
     local LChar = LocalPlayer.Character
     if not LChar then return end
-    local THum = TPlayer.Character:FindFirstChildOfClass("Humanoid")
-    if not THum then return end
+    
+    local LHumanoid = LChar:FindFirstChildOfClass("Humanoid")
+    local THumanoid = TPlayer.Character:FindFirstChildOfClass("Humanoid")
+    if not (LHumanoid and THumanoid) then return end
+    
     local Remotes = ReplicatedStorage:WaitForChild("Remotes")
-    local PDesc = THum:GetAppliedDescription()
-    local argsBody = {[1]={[1]=PDesc.Torso,[2]=PDesc.RightArm,[3]=PDesc.LeftArm,[4]=PDesc.RightLeg,[5]=PDesc.LeftLeg,[6]=PDesc.Head}}
-    pcall(function() Remotes.ChangeCharacterBody:InvokeServer(unpack(argsBody)) end)
+    local PDesc = THumanoid:GetAppliedDescription()
+    
+    local argsBody = {
+        [1] = {
+            [1] = PDesc.Torso,
+            [2] = PDesc.RightArm,
+            [3] = PDesc.LeftArm,
+            [4] = PDesc.RightLeg,
+            [5] = PDesc.LeftLeg,
+            [6] = PDesc.Head
+        }
+    }
+    pcall(function()
+        Remotes.ChangeCharacterBody:InvokeServer(unpack(argsBody))
+    end)
     task.wait(0.5)
-    for _, id in ipairs({tonumber(PDesc.Shirt), tonumber(PDesc.Pants), tonumber(PDesc.Face)}) do
-        if id then Remotes.Wear:InvokeServer(id) task.wait(0.3) end
+    
+    if tonumber(PDesc.Shirt) then
+        Remotes.Wear:InvokeServer(tonumber(PDesc.Shirt))
+        task.wait(0.3)
     end
+    if tonumber(PDesc.Pants) then
+        Remotes.Wear:InvokeServer(tonumber(PDesc.Pants))
+        task.wait(0.3)
+    end
+    if tonumber(PDesc.Face) then
+        Remotes.Wear:InvokeServer(tonumber(PDesc.Face))
+        task.wait(0.3)
+    end
+    
     for _, acc in ipairs(PDesc:GetAccessories(true)) do
         if acc.AssetId and tonumber(acc.AssetId) then
             Remotes.Wear:InvokeServer(tonumber(acc.AssetId))
             task.wait(0.3)
         end
     end
+    
     print("✅ Avatar copiado!")
 end)
 
 -- =========================================================
--- FLING
+-- 8. FLING
 -- =========================================================
-CreateSectionHeader(ScrollMain, "🔥 FLING")
+CreateSectionHeader("🔥 FLING")
 
 local function PegarSofa()
     local char = LocalPlayer.Character
-    if not char then return false end
-    pcall(function() ReplicatedStorage:WaitForChild("RE"):WaitForChild("1Clea1rTool1s"):FireServer("ClearAllTools") end)
+    if not char then
+        print("❌ Você sem personagem!")
+        return false
+    end
+    
+    pcall(function()
+        ReplicatedStorage:WaitForChild("RE"):WaitForChild("1Clea1rTool1s"):FireServer("ClearAllTools")
+    end)
     task.wait(0.2)
-    pcall(function() ReplicatedStorage.RE:FindFirstChild("1Too1l"):InvokeServer("PickingTools","Couch") end)
+    
+    pcall(function()
+        ReplicatedStorage.RE:FindFirstChild("1Too1l"):InvokeServer("PickingTools", "Couch")
+    end)
     task.wait(0.3)
+    
     local tool = LocalPlayer.Backpack:FindFirstChild("Couch")
-    if not tool then return false end
+    if not tool then
+        print("❌ Sofá não encontrado!")
+        return false
+    end
+    
     tool.Parent = char
+    print("✅ Sofá equipado!")
     task.wait(0.1)
-    return char:FindFirstChild("Couch") ~= nil
+    
+    return true
 end
 
-CreateActionButton(ScrollMain, "⚽ Fling Bola", function()
-    local target = GetTarget()
-    if not target or not target.Character then return end
-    local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
-    local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if not tRoot or not myRoot then return end
-    local tHum = target.Character:FindFirstChildOfClass("Humanoid")
+CreateActionButton("⚽ Fling Bola", function()
+    local target = GetTargetPlayer()
+    if not target then
+        print("❌ Nenhum alvo!")
+        return
+    end
+    
+    if not target.Character then
+        print("❌ Alvo sem personagem!")
+        return
+    end
+    
+    local targetHRP = target.Character:FindFirstChild("HumanoidRootPart")
+    if not targetHRP then
+        print("❌ Alvo sem HumanoidRootPart!")
+        return
+    end
+    
+    local myHRP = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not myHRP then
+        print("❌ Você sem HumanoidRootPart!")
+        return
+    end
+    
+    local targetHumanoid = target.Character:FindFirstChildOfClass("Humanoid")
+    
     local ball = Instance.new("Part")
-    ball.Size = Vector3.new(2,2,2)
+    ball.Size = Vector3.new(2, 2, 2)
     ball.Shape = Enum.PartType.Ball
     ball.Material = Enum.Material.SmoothPlastic
     ball.BrickColor = BrickColor.new("Bright red")
@@ -620,188 +800,285 @@ CreateActionButton(ScrollMain, "⚽ Fling Bola", function()
     ball.CanCollide = true
     ball.Transparency = 0.3
     ball.Parent = Workspace
-    ball.CFrame = tRoot.CFrame * CFrame.new(0,2,0)
+    
+    ball.CFrame = targetHRP.CFrame * CFrame.new(0, 2, 0)
+    
     for i = 1, 25 do
-        if not target.Character or not tRoot.Parent then break end
-        local dir = Vector3.new(math.random(-8000,8000), math.random(3000,15000), math.random(-8000,8000))
-        tRoot.AssemblyLinearVelocity = dir
-        tRoot.AssemblyAngularVelocity = Vector3.new(math.random(-2000,2000),math.random(-2000,2000),math.random(-2000,2000))
-        ball.CFrame = tRoot.CFrame * CFrame.new(0,2,0)
-        ball.AssemblyLinearVelocity = dir
-        if tHum and i%5==0 then tHum.Health -= 10 end
+        if not target.Character or not targetHRP.Parent then break end
+        
+        local randomDir = Vector3.new(
+            math.random(-8000, 8000),
+            math.random(3000, 15000),
+            math.random(-8000, 8000)
+        )
+        
+        targetHRP.AssemblyLinearVelocity = randomDir
+        targetHRP.AssemblyAngularVelocity = Vector3.new(
+            math.random(-2000, 2000),
+            math.random(-2000, 2000),
+            math.random(-2000, 2000)
+        )
+        
+        ball.CFrame = targetHRP.CFrame * CFrame.new(0, 2, 0)
+        ball.AssemblyLinearVelocity = randomDir
+        
+        if targetHumanoid and i % 5 == 0 then
+            targetHumanoid.Health = targetHumanoid.Health - 10
+        end
+        
         task.wait()
     end
+    
     ball:Destroy()
-    print("✅ Fling Bola em "..target.Name)
+    print("✅ Fling Bola em " .. target.Name)
 end)
 
-CreateActionButton(ScrollMain, "🛋️ Fling Sofá", function()
-    local target = GetTarget()
-    if not target or not target.Character then return end
+CreateActionButton("🛋️ Fling Sofá", function()
+    local target = GetTargetPlayer()
+    if not target then
+        print("❌ Nenhum alvo!")
+        return
+    end
+    
+    if not target.Character then
+        print("❌ Alvo sem personagem!")
+        return
+    end
+    
     local char = LocalPlayer.Character
-    if not char then return end
+    if not char then
+        print("❌ Você sem personagem!")
+        return
+    end
+    
     local hum = char:FindFirstChildOfClass("Humanoid")
     local root = char:FindFirstChild("HumanoidRootPart")
     local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
-    if not hum or not root or not tRoot then return end
-    if not PegarSofa() then return end
+    
+    if not hum or not root or not tRoot then
+        print("❌ Componentes não encontrados!")
+        return
+    end
+    
+    if not PegarSofa() then
+        return
+    end
+    
     local originalPos = root.CFrame
+    local sitPos = Vector3.new(145.51, -350.09, 21.58)
+    
     VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.F, false, game)
     task.wait(0.1)
+    
     hum:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
     hum.PlatformStand = false
     Workspace.CurrentCamera.CameraSubject = target.Character:FindFirstChild("Head") or tRoot or hum
+    
     local align = Instance.new("BodyPosition")
-    align.MaxForce = Vector3.new(math.huge,math.huge,math.huge)
+    align.Name = "BringPosition"
+    align.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
     align.D = 10
     align.P = 30000
     align.Position = root.Position
     align.Parent = tRoot
+    
     task.spawn(function()
         local angle = 0
-        local st = tick()
-        while tick()-st < 5 and target and target.Character and target.Character:FindFirstChildOfClass("Humanoid") do
+        local startTime = tick()
+        while tick() - startTime < 5 and target and target.Character and target.Character:FindFirstChildOfClass("Humanoid") do
             local tHum = target.Character:FindFirstChildOfClass("Humanoid")
             if not tHum or tHum.Sit then break end
+            
             local hrp = target.Character.HumanoidRootPart
-            angle += 50
-            root.CFrame = CFrame.new(hrp.Position + hrp.Velocity/1.5 + Vector3.new(0,2,0)) * CFrame.Angles(math.rad(angle),0,0)
-            align.Position = root.Position + Vector3.new(2,0,0)
+            local adjustedPos = hrp.Position + (hrp.Velocity / 1.5)
+            
+            angle = angle + 50
+            root.CFrame = CFrame.new(adjustedPos + Vector3.new(0, 2, 0)) * CFrame.Angles(math.rad(angle), 0, 0)
+            align.Position = root.Position + Vector3.new(2, 0, 0)
             task.wait()
         end
+        
         align:Destroy()
         hum:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
         hum.PlatformStand = false
         Workspace.CurrentCamera.CameraSubject = hum
+        
         for _, p in pairs(char:GetDescendants()) do
-            if p:IsA("BasePart") then p.Velocity = Vector3.zero p.RotVelocity = Vector3.zero end
+            if p:IsA("BasePart") then
+                p.Velocity = Vector3.zero
+                p.RotVelocity = Vector3.zero
+            end
         end
+        
         task.wait(0.1)
-        root.CFrame = CFrame.new(145.51,-350.09,21.58)
+        root.CFrame = CFrame.new(sitPos)
         task.wait(0.3)
+        
         local tool = char:FindFirstChild("Couch")
-        if tool then tool.Parent = LocalPlayer.Backpack end
+        if tool then
+            tool.Parent = LocalPlayer.Backpack
+            print("✅ Sofá devolvido!")
+        end
+        
         task.wait(0.01)
-        pcall(function() ReplicatedStorage.RE:FindFirstChild("1Too1l"):InvokeServer("PickingTools","Couch") end)
+        pcall(function()
+            ReplicatedStorage.RE:FindFirstChild("1Too1l"):InvokeServer("PickingTools", "Couch")
+        end)
         task.wait(0.2)
         root.CFrame = originalPos
-        print("✅ Fling Sofá em "..target.Name)
+        
+        print("✅ Fling Sofá em " .. target.Name)
     end)
 end)
 
 -- =========================================================
--- TELEPORT
+-- 9. TELEPORT
 -- =========================================================
-CreateSectionHeader(ScrollMain, "📍 TELEPORT")
+CreateSectionHeader("📍 TELEPORT")
 
-for _, tp in ipairs({
-    {"🏠 Spawn", CFrame.new(-26,4,-23)},
-    {"🏥 Hospital", CFrame.new(-309,4,71)},
-    {"🏫 Escola", CFrame.new(-312,4,211)},
-    {"🏦 Banco", CFrame.new(2.28,4.65,254.58)},
-    {"🛍️ Loja", CFrame.new(-46.15,4.65,253.20)},
-    {"🏝️ Ilha", CFrame.new(-1925,23,127)},
-}) do
-    CreateActionButton(ScrollMain, tp[1], function()
-        local r = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-        if r then r.CFrame = tp[2] end
+local teleportPoints = {
+    {"🏠 Spawn", CFrame.new(-26, 4, -23)},
+    {"🏥 Hospital", CFrame.new(-309, 4, 71)},
+    {"🏫 Escola", CFrame.new(-312, 4, 211)},
+    {"🏦 Banco", CFrame.new(2.28, 4.65, 254.58)},
+    {"🛍️ Loja", CFrame.new(-46.15, 4.65, 253.20)},
+    {"🏝️ Ilha", CFrame.new(-1925, 23, 127)},
+}
+
+for _, tp in ipairs(teleportPoints) do
+    CreateActionButton(tp[1], function()
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            LocalPlayer.Character.HumanoidRootPart.CFrame = tp[2]
+        end
     end)
 end
 
 -- =========================================================
--- ÁUDIO
+-- 10. ÁUDIO
 -- =========================================================
-CreateSectionHeader(ScrollMain, "🎵 ÁUDIO")
+CreateSectionHeader("🎵 ÁUDIO")
 
 local selectedAudioID = nil
-CreateTextBox(ScrollMain, "ID do Áudio", "Digite o ID", function(v)
-    local id = tonumber(v)
+
+CreateTextBox("ID do Áudio", "Digite o ID", function(value)
+    local id = tonumber(value)
     if id then selectedAudioID = id end
 end)
 
-CreateActionButton(ScrollMain, "▶️ Tocar Áudio", function()
-    if not selectedAudioID then return end
-    pcall(function() ReplicatedStorage.RE:FindFirstChild("1Gu1nSound1s"):FireServer(Workspace, selectedAudioID, 1) end)
+CreateActionButton("▶️ Tocar Áudio", function()
+    if not selectedAudioID then
+        print("❌ Selecione um áudio!")
+        return
+    end
+    
+    pcall(function()
+        local args = { Workspace, selectedAudioID, 1 }
+        ReplicatedStorage.RE:FindFirstChild("1Gu1nSound1s"):FireServer(unpack(args))
+    end)
+    
     local sound = Instance.new("Sound")
-    sound.SoundId = "rbxassetid://"..selectedAudioID
+    sound.SoundId = "rbxassetid://" .. selectedAudioID
     sound.Parent = LocalPlayer.Character:FindFirstChild("HumanoidRootPart") or Workspace
     sound:Play()
     task.wait(sound.TimeLength or 3)
     sound:Destroy()
+    print("✅ Áudio tocado!")
 end)
 
-CreateToggleButton(ScrollMain, "🔄 Loop Áudio", function(state)
-    if not state then return end
-    task.spawn(function()
-        while state do
-            if selectedAudioID then
-                pcall(function() ReplicatedStorage.RE:FindFirstChild("1Gu1nSound1s"):FireServer(Workspace, selectedAudioID, 1) end)
-                local sound = Instance.new("Sound")
-                sound.SoundId = "rbxassetid://"..selectedAudioID
-                sound.Parent = LocalPlayer.Character:FindFirstChild("HumanoidRootPart") or Workspace
-                sound:Play()
+CreateToggleButton("🔄 Loop Áudio", function(state)
+    if state then
+        task.spawn(function()
+            while state do
+                if selectedAudioID then
+                    pcall(function()
+                        local args = { Workspace, selectedAudioID, 1 }
+                        ReplicatedStorage.RE:FindFirstChild("1Gu1nSound1s"):FireServer(unpack(args))
+                    end)
+                    local sound = Instance.new("Sound")
+                    sound.SoundId = "rbxassetid://" .. selectedAudioID
+                    sound.Parent = LocalPlayer.Character:FindFirstChild("HumanoidRootPart") or Workspace
+                    sound:Play()
+                    task.wait(0.5)
+                    sound:Destroy()
+                end
                 task.wait(0.5)
-                sound:Destroy()
             end
-            task.wait(0.5)
-        end
-    end)
+        end)
+    end
 end)
 
 -- =========================================================
--- VEÍCULO
+-- 11. VEÍCULO
 -- =========================================================
-CreateSectionHeader(ScrollMain, "🚗 VEÍCULO")
+CreateSectionHeader("🚗 VEÍCULO")
 
-CreateActionButton(ScrollMain, "🚗 Fly Car", function()
+CreateActionButton("🚗 Fly Car", function()
     loadstring(game:HttpGet("https://pastefy.app/RtliHFjP/raw"))()
 end)
 
-CreateActionButton(ScrollMain, "💥 Remover Carros", function()
-    local v = Workspace:FindFirstChild("Vehicles")
-    if v then for _, c in pairs(v:GetChildren()) do c:Destroy() end end
+CreateActionButton("💥 Remover Carros", function()
+    local Vehicles = Workspace:FindFirstChild("Vehicles")
+    if Vehicles then
+        for _, v in pairs(Vehicles:GetChildren()) do
+            v:Destroy()
+        end
+        print("✅ Carros removidos!")
+    end
 end)
 
-CreateToggleButton(ScrollMain, "🌈 Carro RGB", function(state)
-    if not state then return end
-    task.spawn(function()
-        local colors = {Color3.new(1,0,0),Color3.new(0,1,0),Color3.new(0,0,1),Color3.new(1,1,0),Color3.new(1,0,1),Color3.new(0,1,1),Color3.new(0.5,0,0.5),Color3.new(1,0.5,0)}
-        while state do
-            for _, color in ipairs(colors) do
-                if not state then return end
-                pcall(function()
-                    local r = ReplicatedStorage:WaitForChild("RE"):WaitForChild("1Player1sCa1r")
-                    if r then r:FireServer("PickingCarColor", color) end
-                end)
-                task.wait(1)
+CreateToggleButton("🌈 Carro RGB", function(state)
+    if state then
+        task.spawn(function()
+            local colors = {
+                Color3.new(1, 0, 0), Color3.new(0, 1, 0), Color3.new(0, 0, 1),
+                Color3.new(1, 1, 0), Color3.new(1, 0, 1), Color3.new(0, 1, 1),
+                Color3.new(0.5, 0, 0.5), Color3.new(1, 0.5, 0)
+            }
+            while state do
+                for _, color in ipairs(colors) do
+                    if not state then return end
+                    pcall(function()
+                        local remote = ReplicatedStorage:WaitForChild("RE"):WaitForChild("1Player1sCa1r")
+                        if remote then
+                            remote:FireServer("PickingCarColor", color)
+                        end
+                    end)
+                    task.wait(1)
+                end
             end
-        end
-    end)
+        end)
+    end
 end)
 
 -- =========================================================
--- CASA
+-- 12. CASA
 -- =========================================================
-CreateSectionHeader(ScrollMain, "🏠 CASA")
+CreateSectionHeader("🏠 CASA")
 
-CreateToggleButton(ScrollMain, "🌈 Casa RGB", function(state)
-    if not state then return end
-    task.spawn(function()
-        local colors = {Color3.new(1,0,0),Color3.new(0,1,0),Color3.new(0,0,1),Color3.new(1,1,0),Color3.new(0,1,1),Color3.new(1,0,1)}
-        while state do
-            for _, color in ipairs(colors) do
-                if not state then return end
-                pcall(function()
-                    local r = ReplicatedStorage:FindFirstChild("RE") and ReplicatedStorage.RE:FindFirstChild("1Player1sHous1e")
-                    if r then r:FireServer("ColorPickHouse", color) end
-                end)
-                task.wait(0.8)
+CreateToggleButton("🌈 Casa RGB", function(state)
+    if state then
+        task.spawn(function()
+            local colors = {
+                Color3.new(1, 0, 0), Color3.new(0, 1, 0), Color3.new(0, 0, 1),
+                Color3.new(1, 1, 0), Color3.new(0, 1, 1), Color3.new(1, 0, 1)
+            }
+            while state do
+                for _, color in ipairs(colors) do
+                    if not state then return end
+                    pcall(function()
+                        local remote = ReplicatedStorage:FindFirstChild("RE") and ReplicatedStorage.RE:FindFirstChild("1Player1sHous1e")
+                        if remote then
+                            remote:FireServer("ColorPickHouse", color)
+                        end
+                    end)
+                    task.wait(0.8)
+                end
             end
-        end
-    end)
+        end)
+    end
 end)
 
-CreateActionButton(ScrollMain, "🔓 Unban Casa", function()
+CreateActionButton("🔓 Unban Casa", function()
     for _, obj in pairs(Workspace:GetDescendants()) do
         if obj:IsA("Part") and obj.Transparency > 0.5 and obj.Size.X > 20 then
             if tostring(obj.BrickColor):lower():find("red") then
@@ -810,458 +1087,172 @@ CreateActionButton(ScrollMain, "🔓 Unban Casa", function()
             end
         end
     end
+    
     local lots = Workspace:FindFirstChild("001_Lots")
     if lots then
         for _, v in pairs(lots:GetDescendants()) do
             if v.Name == "Permissions" and v:IsA("Folder") then
                 local allow = v:FindFirstChild("Allow")
-                if allow and allow:IsA("RemoteEvent") then allow:FireServer(LocalPlayer) end
+                if allow and allow:IsA("RemoteEvent") then
+                    allow:FireServer(LocalPlayer)
+                    print("✅ Unban enviado!")
+                end
             end
         end
     end
 end)
 
-CreateActionButton(ScrollMain, "🏠 TP Casa", function()
+CreateActionButton("🏠 TP Casa", function()
     local lots = Workspace:FindFirstChild("001_Lots")
     if lots then
         for _, House in pairs(lots:GetChildren()) do
             if House.Name ~= "For Sale" and House:IsA("Model") then
-                local r = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-                if r then r.CFrame = CFrame.new(House.WorldPivot.Position) return end
+                if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                    LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(House.WorldPivot.Position)
+                    print("✅ TP para " .. House.Name)
+                    return
+                end
             end
         end
     end
+    print("❌ Nenhuma casa!")
 end)
 
 -- =========================================================
--- CONFIG
+-- 13. CONFIG
 -- =========================================================
-CreateSectionHeader(ScrollMain, "⚙️ CONFIG")
+CreateSectionHeader("⚙️ CONFIG")
 
-CreateTextBox(ScrollMain, "ID do Servidor", "Digite o ID", function(value)
+CreateTextBox("ID do Servidor", "Digite o ID", function(value)
     if value and value ~= "" then
-        pcall(function() TeleportService:TeleportToPlaceInstance(game.PlaceId, value, LocalPlayer) end)
+        pcall(function()
+            TeleportService:TeleportToPlaceInstance(game.PlaceId, value, LocalPlayer)
+        end)
     end
 end)
 
-CreateActionButton(ScrollMain, "📋 Copiar ID", function()
-    if setclipboard then setclipboard(tostring(game.JobId or "")) end
+CreateActionButton("📋 Copiar ID", function()
+    local serverId = tostring(game.JobId or "")
+    if setclipboard then
+        setclipboard(serverId)
+        print("✅ ID copiado: " .. serverId)
+    end
 end)
 
-CreateActionButton(ScrollMain, "🔒 Shift Lock", function()
-    local sg = Instance.new("ScreenGui")
-    sg.Name = "ShiftLockKyler"
-    sg.Parent = CoreGui
-    sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    sg.ResetOnSpawn = false
-    local lb = Instance.new("ImageButton")
-    lb.Size = UDim2.new(0,50,0,50)
-    lb.Position = UDim2.new(0.785,0,0.865,0)
-    lb.BackgroundColor3 = Color3.fromRGB(40,40,40)
-    lb.BackgroundTransparency = 0.3
-    lb.Parent = sg
-    lb.Image = ""
-    Instance.new("UICorner", lb).CornerRadius = UDim.new(1,0)
-    local icon = Instance.new("ImageLabel")
-    icon.Parent = lb
-    icon.Size = UDim2.new(0.7,0,0.7,0)
-    icon.Position = UDim2.new(0.15,0,0.15,0)
-    icon.BackgroundTransparency = 1
-    icon.Image = "rbxasset://textures/ui/mouseLock_off.png"
-    icon.ImageColor3 = Color3.fromRGB(255,255,255)
-    icon.ScaleType = Enum.ScaleType.Fit
+CreateActionButton("🔒 Shift Lock", function()
+    local shiftlockk = Instance.new("ScreenGui")
+    local LockButton = Instance.new("ImageButton")
+    local btnIcon = Instance.new("ImageLabel")
+    
+    shiftlockk.Name = "ShiftLockKyler"
+    shiftlockk.Parent = CoreGui
+    shiftlockk.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    shiftlockk.ResetOnSpawn = false
+    
+    LockButton.Size = UDim2.new(0, 50, 0, 50)
+    LockButton.Position = UDim2.new(0.785, 0, 0.865, 0)
+    LockButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    LockButton.BackgroundTransparency = 0.3
+    LockButton.Parent = shiftlockk
+    LockButton.Image = ""
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(1, 0)
+    corner.Parent = LockButton
+    
+    btnIcon.Parent = LockButton
+    btnIcon.Size = UDim2.new(0.7, 0, 0.7, 0)
+    btnIcon.Position = UDim2.new(0.15, 0, 0.15, 0)
+    btnIcon.BackgroundTransparency = 1
+    btnIcon.Image = "rbxasset://textures/ui/mouseLock_off.png"
+    btnIcon.ImageColor3 = Color3.fromRGB(255, 255, 255)
+    btnIcon.ScaleType = Enum.ScaleType.Fit
+    
     local active = false
-    local GS = UserSettings():GetService("UserGameSettings")
-    local conn = nil
-    lb.MouseButton1Click:Connect(function()
+    local GameSettings = UserSettings():GetService("UserGameSettings")
+    local connection = nil
+    
+    LockButton.MouseButton1Click:Connect(function()
         active = not active
         if active then
-            icon.ImageColor3 = Color3.fromRGB(0,170,255)
-            conn = RunService.RenderStepped:Connect(function()
-                pcall(function() GS.RotationType = Enum.RotationType.CameraRelative end)
+            btnIcon.ImageColor3 = Color3.fromRGB(0, 170, 255)
+            connection = RunService.RenderStepped:Connect(function()
+                pcall(function()
+                    GameSettings.RotationType = Enum.RotationType.CameraRelative
+                end)
             end)
         else
-            icon.ImageColor3 = Color3.fromRGB(255,255,255)
-            if conn then conn:Disconnect() conn = nil end
-            pcall(function() GS.RotationType = Enum.RotationType.MovementRelative end)
-        end
-    end)
-end)
-
--- =========================================================
--- GRÁFICO LITE
--- =========================================================
-CreateSectionHeader(ScrollMain, "🎮 GRÁFICO LITE")
-
-CreateToggleButton(ScrollMain, "📉 Gráfico Lite", function(state)
-    if not state then return end
-    settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
-    Lighting.GlobalShadows = false
-    Lighting.FogEnd = 9e9
-    Lighting.Brightness = 1
-    Lighting.EnvironmentDiffuseScale = 0
-    Lighting.EnvironmentSpecularScale = 0
-    Lighting.Technology = Enum.Technology.Legacy
-    for _, v in pairs(Lighting:GetDescendants()) do
-        if v:IsA("PostEffect") or v:IsA("BloomEffect") or v:IsA("BlurEffect") or v:IsA("ColorCorrectionEffect") or v:IsA("Sky") then
-            pcall(function() v:Destroy() end)
-        end
-    end
-    for _, obj in pairs(Workspace:GetDescendants()) do
-        if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Smoke") or obj:IsA("Fire") then
-            obj:Destroy()
-        elseif obj:IsA("BasePart") then
-            obj.Material = Enum.Material.SmoothPlastic
-            obj.CastShadow = false
-            obj.Reflectance = 0
-        end
-    end
-    for _, plr in pairs(Players:GetPlayers()) do
-        if plr.Character then
-            for _, child in pairs(plr.Character:GetChildren()) do
-                if child:IsA("Accessory") or child:IsA("Clothing") then child:Destroy() end
+            btnIcon.ImageColor3 = Color3.fromRGB(255, 255, 255)
+            if connection then
+                connection:Disconnect()
+                connection = nil
             end
+            pcall(function()
+                GameSettings.RotationType = Enum.RotationType.MovementRelative
+            end)
         end
-    end
+    end)
+    
+    print("✅ Shift Lock!")
 end)
 
 -- =========================================================
--- 😈 ABA TROLL — BROOKHAVEN (FUNÇÕES QUE REPLICAM)
+-- 14. GRÁFICO LITE
 -- =========================================================
--- ESTRATÉGIA:
--- Teleport próprio: CFrame local funciona e replica via Roblox physics
--- Forçar movimento no alvo: BodyVelocity/BodyPosition instanciado NO char do alvo
---   replica porque BasePart physics replicam do owner — no Brookhaven o owner do
---   HumanoidRootPart é o servidor, então usamos AssemblyLinearVelocity em loop
---   que funciona via network ownership se o servidor não bloqueou.
--- Para funções que precisam de remote genuíno (teleport do alvo, jail, kick visual)
---   usamos os remotes internos do Brookhaven documentados abaixo.
--- =========================================================
+CreateSectionHeader("🎮 GRÁFICO LITE")
 
-CreateSectionHeader(ScrollTroll, "😈 TROLL — BROOKHAVEN")
-
--- helpers
-local RE  = ReplicatedStorage:WaitForChild("RE", 5)
-local function fireRE(name, ...)
-    if not RE then return end
-    local r = RE:FindFirstChild(name)
-    if r then
-        if r:IsA("RemoteEvent") then r:FireServer(...) end
-        if r:IsA("RemoteFunction") then r:InvokeServer(...) end
-    end
-end
-
--- TP EM CIMA DO ALVO (move o LocalPlayer para perto do alvo — replica)
-CreateActionButton(ScrollTroll, "📍 TP em cima do alvo", function()
-    local target = GetTarget()
-    if not target or not target.Character then print("❌ Sem alvo!") return end
-    local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
-    local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if not tRoot or not myRoot then return end
-    -- CFrame local replica via Character network
-    myRoot.CFrame = tRoot.CFrame * CFrame.new(0, 3, 0)
-    print("✅ TP em cima de "..target.Name)
-end)
-
--- SEGUIR ALVO (LocalPlayer se teletransporta continuamente — replica)
-local followActive = false
-local followConn = nil
-CreateToggleButton(ScrollTroll, "🏃 Seguir Alvo", function(state)
-    followActive = state
-    if followConn then followConn:Disconnect() followConn = nil end
-    if not followActive then return end
-    followConn = RunService.Heartbeat:Connect(function()
-        local target = GetTarget()
-        local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-        if not target or not target.Character or not myRoot then return end
-        local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
-        if not tRoot then return end
-        myRoot.CFrame = tRoot.CFrame * CFrame.new(0, 0, 3)
-    end)
-end)
-
--- ARRASTAR ALVO (BodyPosition no HRP do alvo — replica se network ownership permitir)
-local dragActive = false
-local dragConn = nil
-local dragBodyPos = nil
-CreateToggleButton(ScrollTroll, "🧲 Arrastar Alvo", function(state)
-    dragActive = state
-    if dragConn then dragConn:Disconnect() dragConn = nil end
-    if dragBodyPos then dragBodyPos:Destroy() dragBodyPos = nil end
-    if not dragActive then return end
-    local target = GetTarget()
-    if not target or not target.Character then return end
-    local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
-    local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if not tRoot or not myRoot then return end
-    -- BodyPosition instanciado no HRP do alvo
-    dragBodyPos = Instance.new("BodyPosition")
-    dragBodyPos.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-    dragBodyPos.P = 50000
-    dragBodyPos.D = 500
-    dragBodyPos.Position = myRoot.Position + Vector3.new(0, 0, -4)
-    dragBodyPos.Parent = tRoot
-    dragConn = RunService.Heartbeat:Connect(function()
-        if not dragActive or not tRoot.Parent or not myRoot.Parent then
-            if dragBodyPos then dragBodyPos:Destroy() dragBodyPos = nil end
-            if dragConn then dragConn:Disconnect() dragConn = nil end
-            return
-        end
-        local myR = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-        if myR then
-            dragBodyPos.Position = myR.CFrame * CFrame.new(0, 0, -4) |> (function(cf) return cf.Position end)()
-        end
-    end)
-end)
-
--- SPIN NO ALVO (BodyAngularVelocity no HRP do alvo — replica)
-local spinActive = false
-local spinConn = nil
-local spinBAV = nil
-CreateToggleButton(ScrollTroll, "🌀 Spin no Alvo", function(state)
-    spinActive = state
-    if spinConn then spinConn:Disconnect() spinConn = nil end
-    if spinBAV then spinBAV:Destroy() spinBAV = nil end
-    if not spinActive then return end
-    local target = GetTarget()
-    if not target or not target.Character then return end
-    local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
-    if not tRoot then return end
-    spinBAV = Instance.new("BodyAngularVelocity")
-    spinBAV.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-    spinBAV.AngularVelocity = Vector3.new(0, 50, 0)
-    spinBAV.P = 100000
-    spinBAV.Parent = tRoot
-    -- mantém vivo enquanto alvo existe
-    spinConn = RunService.Heartbeat:Connect(function()
-        if not spinActive or not tRoot.Parent then
-            if spinBAV then spinBAV:Destroy() spinBAV = nil end
-            if spinConn then spinConn:Disconnect() spinConn = nil end
-        end
-    end)
-end)
-
--- ARREMESSAR ALVO (AssemblyLinearVelocity em loop — replica via physics)
-CreateActionButton(ScrollTroll, "🚀 Arremessar Alvo", function()
-    local target = GetTarget()
-    if not target or not target.Character then return end
-    local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
-    if not tRoot then return end
-    task.spawn(function()
-        for i = 1, 15 do
-            if not tRoot.Parent then break end
-            tRoot.AssemblyLinearVelocity = Vector3.new(
-                math.random(-300, 300),
-                math.random(600, 1200),
-                math.random(-300, 300)
-            )
-            tRoot.AssemblyAngularVelocity = Vector3.new(
-                math.random(-100, 100),
-                math.random(-100, 100),
-                math.random(-100, 100)
-            )
-            task.wait(0.05)
-        end
-    end)
-    print("✅ Arremessado!")
-end)
-
--- EXPLODIR ALVO (burst de velocidade em todas as direções)
-CreateActionButton(ScrollTroll, "💥 Explodir Alvo", function()
-    local target = GetTarget()
-    if not target or not target.Character then return end
-    local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
-    if not tRoot then return end
-    task.spawn(function()
-        for i = 1, 20 do
-            if not tRoot.Parent then break end
-            tRoot.AssemblyLinearVelocity = Vector3.new(
-                math.random(-5000, 5000),
-                math.random(2000, 8000),
-                math.random(-5000, 5000)
-            )
-            tRoot.AssemblyAngularVelocity = Vector3.new(
-                math.random(-1000, 1000),
-                math.random(-1000, 1000),
-                math.random(-1000, 1000)
-            )
-            task.wait(0.03)
-        end
-    end)
-    print("✅ Explodido!")
-end)
-
--- TRAVAR ALVO NO LUGAR (BodyPosition fixado — replica)
-local freezeActive = false
-local freezeConn = nil
-local freezeBP = nil
-CreateToggleButton(ScrollTroll, "🧊 Travar Alvo", function(state)
-    freezeActive = state
-    if freezeConn then freezeConn:Disconnect() freezeConn = nil end
-    if freezeBP then freezeBP:Destroy() freezeBP = nil end
-    if not freezeActive then return end
-    local target = GetTarget()
-    if not target or not target.Character then return end
-    local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
-    if not tRoot then return end
-    freezeBP = Instance.new("BodyPosition")
-    freezeBP.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-    freezeBP.P = 100000
-    freezeBP.D = 1000
-    freezeBP.Position = tRoot.Position
-    freezeBP.Parent = tRoot
-    freezeConn = RunService.Heartbeat:Connect(function()
-        if not freezeActive or not tRoot.Parent then
-            if freezeBP then freezeBP:Destroy() freezeBP = nil end
-            if freezeConn then freezeConn:Disconnect() freezeConn = nil end
-        end
-    end)
-    print("✅ Alvo travado!")
-end)
-
--- CÂMERA NO ALVO (local — só afeta quem roda)
-local camActive = false
-CreateToggleButton(ScrollTroll, "📷 Câmera no Alvo", function(state)
-    camActive = state
+CreateToggleButton("📉 Gráfico Lite", function(state)
     if state then
-        local target = GetTarget()
-        if not target or not target.Character then return end
-        local hum = target.Character:FindFirstChildOfClass("Humanoid")
-        if hum then Workspace.CurrentCamera.CameraSubject = hum end
-    else
-        local myHum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-        if myHum then Workspace.CurrentCamera.CameraSubject = myHum end
+        settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+        
+        Lighting.GlobalShadows = false
+        Lighting.FogEnd = 9e9
+        Lighting.Brightness = 1
+        Lighting.EnvironmentDiffuseScale = 0
+        Lighting.EnvironmentSpecularScale = 0
+        Lighting.Technology = Enum.Technology.Legacy
+        
+        for _, v in pairs(Lighting:GetDescendants()) do
+            if v:IsA("PostEffect") or v:IsA("BloomEffect") or v:IsA("BlurEffect") or v:IsA("ColorCorrectionEffect") or v:IsA("Sky") then
+                pcall(function() v:Destroy() end)
+            end
+        end
+        
+        local function limpar(obj)
+            if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Smoke") or obj:IsA("Fire") or obj:IsA("Explosion") then
+                obj:Destroy()
+            elseif obj:IsA("Accessory") or obj:IsA("Hat") or obj:IsA("Clothing") then
+                obj:Destroy()
+            elseif obj:IsA("BasePart") then
+                obj.Material = Enum.Material.SmoothPlastic
+                obj.CastShadow = false
+                obj.Reflectance = 0
+            end
+        end
+        
+        for _, obj in pairs(Workspace:GetDescendants()) do
+            limpar(obj)
+        end
+        
+        for _, plr in pairs(Players:GetPlayers()) do
+            if plr.Character then
+                for _, child in pairs(plr.Character:GetChildren()) do
+                    if child:IsA("Accessory") or child:IsA("Clothing") then
+                        child:Destroy()
+                    end
+                end
+            end
+        end
+        
+        print("✅ Gráfico Lite!")
     end
 end)
 
--- LOOP TP NO ALVO (LocalPlayer teletransporta repetido para cima do alvo)
-local loopTpActive = false
-CreateToggleButton(ScrollTroll, "🔁 Loop TP no Alvo", function(state)
-    loopTpActive = state
-    if not state then return end
-    task.spawn(function()
-        while loopTpActive do
-            local target = GetTarget()
-            local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-            if target and target.Character and myRoot then
-                local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
-                if tRoot then
-                    myRoot.CFrame = tRoot.CFrame * CFrame.new(math.random(-2,2), 2, math.random(-2,2))
-                end
-            end
-            task.wait(0.08)
-        end
-    end)
-end)
-
--- SPEED BOOST RÁPIDO (LocalPlayer)
-CreateActionButton(ScrollTroll, "⚡ Speed x10", function()
-    local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-    if hum then hum.WalkSpeed = 160 end
-end)
-
-CreateActionButton(ScrollTroll, "🔄 Reset Speed", function()
-    local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-    if hum then hum.WalkSpeed = 16 end
-end)
-
--- LEVAR ALVO COM VOCÊ (BodyPosition colada em você em loop — replica)
-local carryActive = false
-local carryConn = nil
-local carryBP = nil
-CreateToggleButton(ScrollTroll, "🤝 Carregar Alvo", function(state)
-    carryActive = state
-    if carryConn then carryConn:Disconnect() carryConn = nil end
-    if carryBP then carryBP:Destroy() carryBP = nil end
-    if not carryActive then return end
-    local target = GetTarget()
-    if not target or not target.Character then return end
-    local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
-    if not tRoot then return end
-    carryBP = Instance.new("BodyPosition")
-    carryBP.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-    carryBP.P = 50000
-    carryBP.D = 500
-    carryBP.Position = tRoot.Position
-    carryBP.Parent = tRoot
-    carryConn = RunService.Heartbeat:Connect(function()
-        if not carryActive or not tRoot.Parent then
-            if carryBP then carryBP:Destroy() carryBP = nil end
-            if carryConn then carryConn:Disconnect() carryConn = nil end
-            return
-        end
-        local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-        if myRoot then
-            carryBP.Position = myRoot.CFrame * CFrame.new(0, 2, -3) |> (function(cf) return cf.Position end)()
-        end
-    end)
-    print("✅ Carregando "..target.Name)
-end)
-
--- VIBRAR ALVO (oscilação rápida de velocidade — replica)
-local vibrateActive = false
-local vibrateConn = nil
-CreateToggleButton(ScrollTroll, "📳 Vibrar Alvo", function(state)
-    vibrateActive = state
-    if vibrateConn then vibrateConn:Disconnect() vibrateConn = nil end
-    if not vibrateActive then return end
-    local target = GetTarget()
-    if not target or not target.Character then return end
-    local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
-    if not tRoot then return end
-    local dir = 1
-    vibrateConn = RunService.Heartbeat:Connect(function()
-        if not vibrateActive or not tRoot.Parent then
-            if vibrateConn then vibrateConn:Disconnect() vibrateConn = nil end
-            return
-        end
-        dir = -dir
-        tRoot.AssemblyLinearVelocity = Vector3.new(dir * 80, 0, dir * 80)
-    end)
-end)
-
--- CHAT SPAM (via remote do chat do Roblox — visível para todos)
-local chatSpamActive = false
-CreateToggleButton(ScrollTroll, "💬 Chat Spam", function(state)
-    chatSpamActive = state
-    if not state then return end
-    task.spawn(function()
-        local msgs = {
-            "👀 olha pra cima", "kkkkkkkk", "fugiu não",
-            "🔥 KYLER HUB", "sumiu não hein", "😂😂😂",
-            "vai tomar!", "tá travado irmão"
-        }
-        local i = 1
-        while chatSpamActive do
-            pcall(function()
-                -- remote oficial do chat legado do Roblox
-                local chatRemote = ReplicatedStorage:FindFirstChild("DefaultChatSystemChatEvents")
-                if chatRemote then
-                    local sayMsg = chatRemote:FindFirstChild("SayMessageRequest")
-                    if sayMsg then sayMsg:FireServer(msgs[i], "All") end
-                end
-            end)
-            -- fallback: chat moderno via Players
-            pcall(function()
-                Players:Chat(msgs[i])
-            end)
-            i = i % #msgs + 1
-            task.wait(1.2)
-        end
-    end)
-end)
-
--- RESETAR CÂMERA
-CreateActionButton(ScrollTroll, "🎥 Resetar Câmera", function()
-    local myHum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-    if myHum then Workspace.CurrentCamera.CameraSubject = myHum end
-end)
-
 -- =========================================================
--- HOTKEY
+-- 15. HOTKEY
 -- =========================================================
-UserInputService.InputBegan:Connect(function(input, gpe)
-    if gpe then return end
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
     if input.KeyCode == Enum.KeyCode.RightShift then
         MainFrame.Visible = not MainFrame.Visible
     end

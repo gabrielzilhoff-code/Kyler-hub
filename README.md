@@ -114,18 +114,19 @@ local function MakeScrollFrame()
     return sf
 end
 
-local ScrollMain  = MakeScrollFrame()
-local ScrollTroll = MakeScrollFrame()
+local ScrollMain   = MakeScrollFrame()
+local ScrollTroll  = MakeScrollFrame()
+local ScrollBrings = MakeScrollFrame()
 ScrollMain.Visible = true
 
 local function MakeTab(text, key, order)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0, 100, 1, 0)
+    btn.Size = UDim2.new(0, 90, 1, 0)
     btn.BackgroundColor3 = (key == "main") and Color3.fromRGB(170, 85, 255) or Color3.fromRGB(30, 30, 35)
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.Text = text
     btn.Font = Enum.Font.SourceSansBold
-    btn.TextSize = 12
+    btn.TextSize = 11
     btn.BorderSizePixel = 0
     btn.LayoutOrder = order
     btn.Parent = TabBar
@@ -133,17 +134,22 @@ local function MakeTab(text, key, order)
     return btn
 end
 
-local TabMain  = MakeTab("⚙️ Principal", "main",  1)
-local TabTroll = MakeTab("😈 Troll",     "troll", 2)
+local TabMain   = MakeTab("⚙️ Principal", "main",   1)
+local TabTroll  = MakeTab("😈 Troll",     "troll",  2)
+local TabBrings = MakeTab("🚪 Brings",    "brings", 3)
 
 local function SwitchTab(key)
-    ScrollMain.Visible  = (key == "main")
-    ScrollTroll.Visible = (key == "troll")
-    TabMain.BackgroundColor3  = (key == "main")  and Color3.fromRGB(170, 85, 255) or Color3.fromRGB(30, 30, 35)
-    TabTroll.BackgroundColor3 = (key == "troll") and Color3.fromRGB(170, 85, 255) or Color3.fromRGB(30, 30, 35)
+    ScrollMain.Visible   = (key == "main")
+    ScrollTroll.Visible  = (key == "troll")
+    ScrollBrings.Visible = (key == "brings")
+    TabMain.BackgroundColor3   = (key == "main")   and Color3.fromRGB(170, 85, 255) or Color3.fromRGB(30, 30, 35)
+    TabTroll.BackgroundColor3  = (key == "troll")  and Color3.fromRGB(170, 85, 255) or Color3.fromRGB(30, 30, 35)
+    TabBrings.BackgroundColor3 = (key == "brings") and Color3.fromRGB(170, 85, 255) or Color3.fromRGB(30, 30, 35)
 end
-TabMain.MouseButton1Click:Connect(function()  SwitchTab("main")  end)
-TabTroll.MouseButton1Click:Connect(function() SwitchTab("troll") end)
+
+TabMain.MouseButton1Click:Connect(function()   SwitchTab("main")   end)
+TabTroll.MouseButton1Click:Connect(function()  SwitchTab("troll")  end)
+TabBrings.MouseButton1Click:Connect(function() SwitchTab("brings") end)
 
 -- =========================================================
 -- COMPONENTES
@@ -175,7 +181,6 @@ local function CreateSlider(parent, text, minVal, maxVal, default, callback)
     frame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
     frame.Parent = parent
     Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 6)
-
     local label = Instance.new("TextLabel")
     label.Size = UDim2.new(1, 0, 0, 18)
     label.BackgroundTransparency = 1
@@ -184,47 +189,34 @@ local function CreateSlider(parent, text, minVal, maxVal, default, callback)
     label.Font = Enum.Font.SourceSans
     label.TextSize = 12
     label.Parent = frame
-
     local track = Instance.new("TextButton")
     track.Size = UDim2.new(1, -16, 0, 10)
     track.Position = UDim2.new(0, 8, 0, 22)
     track.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
     track.Text = ""
     track.Parent = frame
-
     local fill = Instance.new("Frame")
     fill.Size = UDim2.new((default - minVal) / (maxVal - minVal), 0, 1, 0)
     fill.BackgroundColor3 = Color3.fromRGB(170, 85, 255)
     fill.BorderSizePixel = 0
     fill.Parent = track
-
     local dragging = false
     local function update(input)
         if not track.AbsoluteSize then return end
-        local pos = math.clamp(
-            (input.Position.X - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1
-        )
+        local pos = math.clamp((input.Position.X - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1)
         fill.Size = UDim2.new(pos, 0, 1, 0)
         local value = math.floor(minVal + (maxVal - minVal) * pos)
         label.Text = text .. ": " .. tostring(value)
         callback(value)
     end
-
     track.InputBegan:Connect(function(i)
-        if i.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            update(i)
-        end
+        if i.UserInputType == Enum.UserInputType.MouseButton1 then dragging = true update(i) end
     end)
     track.InputEnded:Connect(function(i)
-        if i.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = false
-        end
+        if i.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
     end)
     local c = UserInputService.InputChanged:Connect(function(i)
-        if dragging and i.UserInputType == Enum.UserInputType.MouseMovement then
-            update(i)
-        end
+        if dragging and i.UserInputType == Enum.UserInputType.MouseMovement then update(i) end
     end)
     frame.AncestryChanged:Connect(function()
         if not frame.Parent and c then c:Disconnect() end
@@ -262,7 +254,6 @@ local function CreateTextBox(parent, text, placeholder, callback)
     frame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
     frame.Parent = parent
     Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 6)
-
     local label = Instance.new("TextLabel")
     label.Size = UDim2.new(0.4, 0, 1, 0)
     label.BackgroundTransparency = 1
@@ -271,7 +262,6 @@ local function CreateTextBox(parent, text, placeholder, callback)
     label.Font = Enum.Font.SourceSans
     label.TextSize = 12
     label.Parent = frame
-
     local box = Instance.new("TextBox")
     box.Size = UDim2.new(0.55, -8, 0.8, 0)
     box.Position = UDim2.new(0.4, 0, 0.1, 0)
@@ -969,11 +959,10 @@ CreateToggleButton(ScrollMain, "📉 Gráfico Lite", function(state)
 end)
 
 -- =========================================================
--- 😈 ABA TROLL — BROOKHAVEN
+-- 😈 ABA TROLL
 -- =========================================================
 CreateSectionHeader(ScrollTroll, "😈 TROLL — BROOKHAVEN")
 
--- TP em cima do alvo
 CreateActionButton(ScrollTroll, "📍 TP em cima do alvo", function()
     local target = GetTarget()
     if not target or not target.Character then print("❌ Sem alvo!") return end
@@ -984,7 +973,6 @@ CreateActionButton(ScrollTroll, "📍 TP em cima do alvo", function()
     print("✅ TP em cima de " .. target.Name)
 end)
 
--- Seguir alvo
 local followActive = false
 local followConn = nil
 CreateToggleButton(ScrollTroll, "🏃 Seguir Alvo", function(state)
@@ -1001,7 +989,6 @@ CreateToggleButton(ScrollTroll, "🏃 Seguir Alvo", function(state)
     end)
 end)
 
--- Arrastar alvo (BodyPosition no HRP do alvo)
 local dragActive = false
 local dragConn = nil
 local dragBP = nil
@@ -1028,13 +1015,12 @@ CreateToggleButton(ScrollTroll, "🧲 Arrastar Alvo", function(state)
         end
         local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
         if myRoot then
-            local targetPos = myRoot.CFrame * CFrame.new(0, 0, -4)
-            dragBP.Position = targetPos.Position
+            local cf = myRoot.CFrame * CFrame.new(0, 0, -4)
+            dragBP.Position = cf.Position
         end
     end)
 end)
 
--- Spin no alvo (BodyAngularVelocity)
 local spinActive = false
 local spinConn = nil
 local spinBAV = nil
@@ -1060,7 +1046,6 @@ CreateToggleButton(ScrollTroll, "🌀 Spin no Alvo", function(state)
     end)
 end)
 
--- Arremessar alvo
 CreateActionButton(ScrollTroll, "🚀 Arremessar Alvo", function()
     local target = GetTarget()
     if not target or not target.Character then print("❌ Sem alvo!") return end
@@ -1069,23 +1054,14 @@ CreateActionButton(ScrollTroll, "🚀 Arremessar Alvo", function()
     task.spawn(function()
         for i = 1, 15 do
             if not tRoot.Parent then break end
-            tRoot.AssemblyLinearVelocity = Vector3.new(
-                math.random(-300, 300),
-                math.random(600, 1200),
-                math.random(-300, 300)
-            )
-            tRoot.AssemblyAngularVelocity = Vector3.new(
-                math.random(-100, 100),
-                math.random(-100, 100),
-                math.random(-100, 100)
-            )
+            tRoot.AssemblyLinearVelocity = Vector3.new(math.random(-300,300), math.random(600,1200), math.random(-300,300))
+            tRoot.AssemblyAngularVelocity = Vector3.new(math.random(-100,100), math.random(-100,100), math.random(-100,100))
             task.wait(0.05)
         end
     end)
     print("✅ Arremessado!")
 end)
 
--- Explodir alvo
 CreateActionButton(ScrollTroll, "💥 Explodir Alvo", function()
     local target = GetTarget()
     if not target or not target.Character then print("❌ Sem alvo!") return end
@@ -1094,23 +1070,14 @@ CreateActionButton(ScrollTroll, "💥 Explodir Alvo", function()
     task.spawn(function()
         for i = 1, 20 do
             if not tRoot.Parent then break end
-            tRoot.AssemblyLinearVelocity = Vector3.new(
-                math.random(-5000, 5000),
-                math.random(2000, 8000),
-                math.random(-5000, 5000)
-            )
-            tRoot.AssemblyAngularVelocity = Vector3.new(
-                math.random(-1000, 1000),
-                math.random(-1000, 1000),
-                math.random(-1000, 1000)
-            )
+            tRoot.AssemblyLinearVelocity = Vector3.new(math.random(-5000,5000), math.random(2000,8000), math.random(-5000,5000))
+            tRoot.AssemblyAngularVelocity = Vector3.new(math.random(-1000,1000), math.random(-1000,1000), math.random(-1000,1000))
             task.wait(0.03)
         end
     end)
     print("✅ Explodido!")
 end)
 
--- Travar alvo (BodyPosition fixado)
 local freezeActive = false
 local freezeConn = nil
 local freezeBP = nil
@@ -1138,7 +1105,6 @@ CreateToggleButton(ScrollTroll, "🧊 Travar Alvo", function(state)
     print("✅ Alvo travado!")
 end)
 
--- Câmera no alvo
 local camActive = false
 CreateToggleButton(ScrollTroll, "📷 Câmera no Alvo", function(state)
     camActive = state
@@ -1153,7 +1119,6 @@ CreateToggleButton(ScrollTroll, "📷 Câmera no Alvo", function(state)
     end
 end)
 
--- Loop TP no alvo
 local loopTpActive = false
 CreateToggleButton(ScrollTroll, "🔁 Loop TP no Alvo", function(state)
     loopTpActive = state
@@ -1165,7 +1130,7 @@ CreateToggleButton(ScrollTroll, "🔁 Loop TP no Alvo", function(state)
             if target and target.Character and myRoot then
                 local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
                 if tRoot then
-                    myRoot.CFrame = tRoot.CFrame * CFrame.new(math.random(-2, 2), 2, math.random(-2, 2))
+                    myRoot.CFrame = tRoot.CFrame * CFrame.new(math.random(-2,2), 2, math.random(-2,2))
                 end
             end
             task.wait(0.08)
@@ -1173,7 +1138,6 @@ CreateToggleButton(ScrollTroll, "🔁 Loop TP no Alvo", function(state)
     end)
 end)
 
--- Carregar alvo (BodyPosition colada em você)
 local carryActive = false
 local carryConn = nil
 local carryBP = nil
@@ -1207,7 +1171,6 @@ CreateToggleButton(ScrollTroll, "🤝 Carregar Alvo", function(state)
     print("✅ Carregando " .. target.Name)
 end)
 
--- Vibrar alvo
 local vibrateActive = false
 local vibrateConn = nil
 CreateToggleButton(ScrollTroll, "📳 Vibrar Alvo", function(state)
@@ -1229,7 +1192,6 @@ CreateToggleButton(ScrollTroll, "📳 Vibrar Alvo", function(state)
     end)
 end)
 
--- Speed x10
 CreateActionButton(ScrollTroll, "⚡ Speed x10", function()
     local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
     if hum then hum.WalkSpeed = 160 end
@@ -1240,7 +1202,6 @@ CreateActionButton(ScrollTroll, "🔄 Reset Speed", function()
     if hum then hum.WalkSpeed = 16 end
 end)
 
--- Chat spam
 local chatSpamActive = false
 CreateToggleButton(ScrollTroll, "💬 Chat Spam", function(state)
     chatSpamActive = state
@@ -1263,8 +1224,7 @@ CreateToggleButton(ScrollTroll, "💬 Chat Spam", function(state)
             pcall(function()
                 game:GetService("Chat"):Chat(
                     LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Head"),
-                    msgs[i],
-                    Enum.ChatColor.White
+                    msgs[i], Enum.ChatColor.White
                 )
             end)
             i = i % #msgs + 1
@@ -1273,10 +1233,321 @@ CreateToggleButton(ScrollTroll, "💬 Chat Spam", function(state)
     end)
 end)
 
--- Resetar câmera
 CreateActionButton(ScrollTroll, "🎥 Resetar Câmera", function()
     local myHum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
     if myHum then Workspace.CurrentCamera.CameraSubject = myHum end
+end)
+
+-- =========================================================
+-- 🚪 ABA BRINGS
+-- =========================================================
+CreateSectionHeader(ScrollBrings, "🚪 BRINGS — BROOKHAVEN")
+
+-- helper: varre o workspace inteiro por partes que parecem portas
+local function FindAllDoors()
+    local seen = {}
+    local doors = {}
+
+    local keywords = {"door", "porta", "gate", "portao", "hinge", "doorway"}
+
+    local function isDoor(name)
+        local n = name:lower()
+        for _, kw in ipairs(keywords) do
+            if n:find(kw) then return true end
+        end
+        return false
+    end
+
+    local function tryAdd(part)
+        if part and not seen[part] and part.Parent then
+            seen[part] = true
+            table.insert(doors, part)
+        end
+    end
+
+    -- varredura geral do Workspace
+    for _, obj in pairs(Workspace:GetDescendants()) do
+        if isDoor(obj.Name) then
+            if obj:IsA("BasePart") or obj:IsA("UnionOperation") or obj:IsA("MeshPart") then
+                tryAdd(obj)
+            elseif obj:IsA("Model") and obj.PrimaryPart then
+                tryAdd(obj.PrimaryPart)
+            end
+        end
+    end
+
+    -- varredura específica 001_Lots (estrutura do Brookhaven)
+    local lots = Workspace:FindFirstChild("001_Lots")
+    if lots then
+        for _, lot in pairs(lots:GetChildren()) do
+            for _, obj in pairs(lot:GetDescendants()) do
+                if isDoor(obj.Name) then
+                    if obj:IsA("BasePart") or obj:IsA("UnionOperation") or obj:IsA("MeshPart") then
+                        tryAdd(obj)
+                    end
+                end
+            end
+        end
+    end
+
+    return doors
+end
+
+-- estado das portas capturadas
+local capturedDoors = {}
+local bringDoorsActive = false
+local bringDoorsConn = nil
+
+-- BRING PORTAS (loop — segue o alvo)
+CreateToggleButton(ScrollBrings, "🚪 Bring Portas", function(state)
+    bringDoorsActive = state
+
+    if bringDoorsConn then
+        bringDoorsConn:Disconnect()
+        bringDoorsConn = nil
+    end
+
+    if not bringDoorsActive then
+        -- restaura
+        for _, data in pairs(capturedDoors) do
+            pcall(function()
+                if data.part and data.part.Parent then
+                    data.part.Anchored = data.wasAnchored
+                    data.part.CFrame   = data.originalCFrame
+                end
+            end)
+        end
+        capturedDoors = {}
+        print("❌ Bring Portas OFF")
+        return
+    end
+
+    local target = GetTarget()
+    if not target or not target.Character then
+        print("❌ Selecione um alvo primeiro!")
+        bringDoorsActive = false
+        return
+    end
+
+    local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
+    if not tRoot then print("❌ Alvo sem HumanoidRootPart!") bringDoorsActive = false return end
+
+    -- captura e ancora
+    capturedDoors = {}
+    local doors = FindAllDoors()
+    for _, door in ipairs(doors) do
+        pcall(function()
+            if door and door.Parent then
+                table.insert(capturedDoors, {
+                    part           = door,
+                    wasAnchored    = door.Anchored,
+                    originalCFrame = door.CFrame,
+                })
+                door.Anchored = true
+            end
+        end)
+    end
+
+    if #capturedDoors == 0 then
+        print("❌ Nenhuma porta encontrada no servidor!")
+        bringDoorsActive = false
+        return
+    end
+
+    print("✅ " .. #capturedDoors .. " portas capturadas → seguindo " .. target.Name)
+
+    bringDoorsConn = RunService.Heartbeat:Connect(function()
+        if not bringDoorsActive then return end
+        local tgt = GetTarget()
+        if not tgt or not tgt.Character then return end
+        local root = tgt.Character:FindFirstChild("HumanoidRootPart")
+        if not root then return end
+
+        local total = #capturedDoors
+        for i, data in ipairs(capturedDoors) do
+            pcall(function()
+                if data.part and data.part.Parent then
+                    local angle  = (i / total) * math.pi * 2
+                    local radius = 3 + math.floor((i - 1) / 8) * 2
+                    local x = math.cos(angle) * radius
+                    local z = math.sin(angle) * radius
+                    data.part.CFrame = root.CFrame * CFrame.new(x, 0, z)
+                end
+            end)
+        end
+    end)
+end)
+
+-- SNAP PORTAS (teleporta uma vez, não segue)
+CreateActionButton(ScrollBrings, "📌 Snap Portas no Alvo", function()
+    local target = GetTarget()
+    if not target or not target.Character then print("❌ Sem alvo!") return end
+    local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
+    if not tRoot then return end
+
+    local doors = FindAllDoors()
+    if #doors == 0 then print("❌ Nenhuma porta encontrada!") return end
+
+    local count = 0
+    for i, door in ipairs(doors) do
+        pcall(function()
+            if door and door.Parent then
+                door.Anchored = true
+                local angle  = (i / #doors) * math.pi * 2
+                local radius = 3 + math.floor((i - 1) / 8) * 2
+                door.CFrame  = tRoot.CFrame * CFrame.new(math.cos(angle) * radius, 0, math.sin(angle) * radius)
+                count = count + 1
+            end
+        end)
+    end
+    print("✅ " .. count .. " portas snappadas em " .. target.Name)
+end)
+
+-- SOLTAR PORTAS (restaura posições originais)
+CreateActionButton(ScrollBrings, "🔓 Soltar Portas", function()
+    if bringDoorsConn then bringDoorsConn:Disconnect() bringDoorsConn = nil end
+    bringDoorsActive = false
+    for _, data in pairs(capturedDoors) do
+        pcall(function()
+            if data.part and data.part.Parent then
+                data.part.Anchored = data.wasAnchored
+                data.part.CFrame   = data.originalCFrame
+            end
+        end)
+    end
+    capturedDoors = {}
+    print("✅ Portas liberadas!")
+end)
+
+-- BRING VEÍCULOS DO SERVIDOR
+local capturedVehicles = {}
+local bringVehiclesActive = false
+local bringVehiclesConn = nil
+
+CreateToggleButton(ScrollBrings, "🚗 Bring Veículos", function(state)
+    bringVehiclesActive = state
+    if bringVehiclesConn then bringVehiclesConn:Disconnect() bringVehiclesConn = nil end
+
+    if not bringVehiclesActive then
+        for _, data in pairs(capturedVehicles) do
+            pcall(function()
+                if data.part and data.part.Parent then
+                    data.part.Anchored = data.wasAnchored
+                    data.part.CFrame   = data.originalCFrame
+                end
+            end)
+        end
+        capturedVehicles = {}
+        print("❌ Bring Veículos OFF")
+        return
+    end
+
+    local target = GetTarget()
+    if not target or not target.Character then print("❌ Sem alvo!") bringVehiclesActive = false return end
+    local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
+    if not tRoot then bringVehiclesActive = false return end
+
+    capturedVehicles = {}
+    local vehicles = Workspace:FindFirstChild("Vehicles")
+    if vehicles then
+        for _, v in pairs(vehicles:GetChildren()) do
+            local pp = v:IsA("Model") and v.PrimaryPart
+            if pp then
+                table.insert(capturedVehicles, {
+                    part = pp,
+                    wasAnchored = pp.Anchored,
+                    originalCFrame = pp.CFrame,
+                })
+                pp.Anchored = true
+            end
+        end
+    end
+
+    if #capturedVehicles == 0 then
+        print("❌ Nenhum veículo encontrado!")
+        bringVehiclesActive = false
+        return
+    end
+
+    print("✅ " .. #capturedVehicles .. " veículos capturados → " .. target.Name)
+
+    bringVehiclesConn = RunService.Heartbeat:Connect(function()
+        if not bringVehiclesActive then return end
+        local tgt = GetTarget()
+        if not tgt or not tgt.Character then return end
+        local root = tgt.Character:FindFirstChild("HumanoidRootPart")
+        if not root then return end
+
+        for i, data in ipairs(capturedVehicles) do
+            pcall(function()
+                if data.part and data.part.Parent then
+                    local angle = (i / #capturedVehicles) * math.pi * 2
+                    local radius = 6
+                    data.part.CFrame = root.CFrame * CFrame.new(math.cos(angle) * radius, 0, math.sin(angle) * radius)
+                end
+            end)
+        end
+    end)
+end)
+
+-- SOLTAR VEÍCULOS
+CreateActionButton(ScrollBrings, "🔓 Soltar Veículos", function()
+    if bringVehiclesConn then bringVehiclesConn:Disconnect() bringVehiclesConn = nil end
+    bringVehiclesActive = false
+    for _, data in pairs(capturedVehicles) do
+        pcall(function()
+            if data.part and data.part.Parent then
+                data.part.Anchored = data.wasAnchored
+                data.part.CFrame   = data.originalCFrame
+            end
+        end)
+    end
+    capturedVehicles = {}
+    print("✅ Veículos liberados!")
+end)
+
+-- BRING PROPS SOLTOS DO WORKSPACE
+CreateActionButton(ScrollBrings, "📦 Snap Props no Alvo", function()
+    local target = GetTarget()
+    if not target or not target.Character then print("❌ Sem alvo!") return end
+    local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
+    if not tRoot then return end
+
+    local props = {}
+    local blacklist = {
+        ["Baseplate"] = true, ["Terrain"] = true,
+        ["SpawnLocation"] = true, ["HumanoidRootPart"] = true,
+    }
+
+    for _, obj in pairs(Workspace:GetChildren()) do
+        if not blacklist[obj.Name] and obj ~= LocalPlayer.Character then
+            if obj:IsA("BasePart") or obj:IsA("MeshPart") or obj:IsA("UnionOperation") then
+                if not obj.Locked then
+                    table.insert(props, obj)
+                end
+            elseif obj:IsA("Model") and obj.PrimaryPart and obj ~= LocalPlayer.Character then
+                table.insert(props, obj.PrimaryPart)
+            end
+        end
+    end
+
+    local count = 0
+    for i, prop in ipairs(props) do
+        pcall(function()
+            if prop and prop.Parent then
+                prop.Anchored = true
+                local angle  = (i / #props) * math.pi * 2
+                local radius = 4 + math.floor((i - 1) / 10) * 3
+                prop.CFrame  = tRoot.CFrame * CFrame.new(
+                    math.cos(angle) * radius,
+                    math.random(0, 2),
+                    math.sin(angle) * radius
+                )
+                count = count + 1
+            end
+        end)
+    end
+    print("✅ " .. count .. " props snappados em " .. target.Name)
 end)
 
 -- =========================================================

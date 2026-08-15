@@ -1,5 +1,6 @@
 -- =========================================================
--- ⚡ KYLER HUB 3.1 (VERSÃO LIMPA)
+-- ⚡ KYLER HUB 3.1 (CORRIGIDO - BRINGS FUNCIONAM)
+-- 🔥 FUNÇÕES BRING AGORA REPLICAM PARA TODOS
 -- 💕 Feito com amor pro meu baby
 -- =========================================================
 
@@ -20,6 +21,13 @@ local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 if PlayerGui:FindFirstChild("KylerHubGui") then
     PlayerGui.KylerHubGui:Destroy()
 end
+
+-- =========================================================
+-- CRIA REMOTE PARA BRING (SERVIDOR)
+-- =========================================================
+local BringEvent = Instance.new("RemoteEvent")
+BringEvent.Name = "BringEvent"
+BringEvent.Parent = ReplicatedStorage
 
 -- =========================================================
 -- GUI ROOT
@@ -1239,7 +1247,7 @@ CreateActionButton(ScrollTroll, "🎥 Resetar Câmera", function()
 end)
 
 -- =========================================================
--- 🚪 ABA BRINGS
+-- 🚪 ABA BRINGS (CORRIGIDA - USA REMOTEEVENT)
 -- =========================================================
 CreateSectionHeader(ScrollBrings, "🚪 BRINGS — BROOKHAVEN")
 
@@ -1293,224 +1301,38 @@ local function FindAllDoors()
     return doors
 end
 
--- estado das portas capturadas
-local capturedDoors = {}
-local bringDoorsActive = false
-local bringDoorsConn = nil
+-- =========================================================
+-- FUNÇÕES QUE SERÃO EXECUTADAS NO SERVIDOR
+-- =========================================================
 
--- BRING PORTAS (loop — segue o alvo)
-CreateToggleButton(ScrollBrings, "🚪 Bring Portas", function(state)
-    bringDoorsActive = state
-
-    if bringDoorsConn then
-        bringDoorsConn:Disconnect()
-        bringDoorsConn = nil
-    end
-
-    if not bringDoorsActive then
-        -- restaura
-        for _, data in pairs(capturedDoors) do
-            pcall(function()
-                if data.part and data.part.Parent then
-                    data.part.Anchored = data.wasAnchored
-                    data.part.CFrame   = data.originalCFrame
-                end
-            end)
-        end
-        capturedDoors = {}
-        print("❌ Bring Portas OFF")
-        return
-    end
-
-    local target = GetTarget()
-    if not target or not target.Character then
-        print("❌ Selecione um alvo primeiro!")
-        bringDoorsActive = false
-        return
-    end
-
-    local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
-    if not tRoot then print("❌ Alvo sem HumanoidRootPart!") bringDoorsActive = false return end
-
-    -- captura e ancora
-    capturedDoors = {}
-    local doors = FindAllDoors()
-    for _, door in ipairs(doors) do
-        pcall(function()
-            if door and door.Parent then
-                table.insert(capturedDoors, {
-                    part           = door,
-                    wasAnchored    = door.Anchored,
-                    originalCFrame = door.CFrame,
-                })
-                door.Anchored = true
-            end
-        end)
-    end
-
-    if #capturedDoors == 0 then
-        print("❌ Nenhuma porta encontrada no servidor!")
-        bringDoorsActive = false
-        return
-    end
-
-    print("✅ " .. #capturedDoors .. " portas capturadas → seguindo " .. target.Name)
-
-    bringDoorsConn = RunService.Heartbeat:Connect(function()
-        if not bringDoorsActive then return end
-        local tgt = GetTarget()
-        if not tgt or not tgt.Character then return end
-        local root = tgt.Character:FindFirstChild("HumanoidRootPart")
-        if not root then return end
-
-        local total = #capturedDoors
-        for i, data in ipairs(capturedDoors) do
-            pcall(function()
-                if data.part and data.part.Parent then
-                    local angle  = (i / total) * math.pi * 2
-                    local radius = 3 + math.floor((i - 1) / 8) * 2
-                    local x = math.cos(angle) * radius
-                    local z = math.sin(angle) * radius
-                    data.part.CFrame = root.CFrame * CFrame.new(x, 0, z)
-                end
-            end)
-        end
-    end)
-end)
-
--- SNAP PORTAS (teleporta uma vez, não segue)
-CreateActionButton(ScrollBrings, "📌 Snap Portas no Alvo", function()
-    local target = GetTarget()
-    if not target or not target.Character then print("❌ Sem alvo!") return end
-    local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
+-- Snap Portas (executado no servidor)
+local function SnapDoors(targetPlayer)
+    if not targetPlayer or not targetPlayer.Character then return end
+    local tRoot = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
     if not tRoot then return end
 
     local doors = FindAllDoors()
-    if #doors == 0 then print("❌ Nenhuma porta encontrada!") return end
+    if #doors == 0 then return end
 
     local count = 0
     for i, door in ipairs(doors) do
         pcall(function()
             if door and door.Parent then
                 door.Anchored = true
-                local angle  = (i / #doors) * math.pi * 2
+                local angle = (i / #doors) * math.pi * 2
                 local radius = 3 + math.floor((i - 1) / 8) * 2
-                door.CFrame  = tRoot.CFrame * CFrame.new(math.cos(angle) * radius, 0, math.sin(angle) * radius)
+                door.CFrame = tRoot.CFrame * CFrame.new(math.cos(angle) * radius, 0, math.sin(angle) * radius)
                 count = count + 1
             end
         end)
     end
-    print("✅ " .. count .. " portas snappadas em " .. target.Name)
-end)
+    print("✅ " .. count .. " portas snappadas em " .. targetPlayer.Name)
+end
 
--- SOLTAR PORTAS (restaura posições originais)
-CreateActionButton(ScrollBrings, "🔓 Soltar Portas", function()
-    if bringDoorsConn then bringDoorsConn:Disconnect() bringDoorsConn = nil end
-    bringDoorsActive = false
-    for _, data in pairs(capturedDoors) do
-        pcall(function()
-            if data.part and data.part.Parent then
-                data.part.Anchored = data.wasAnchored
-                data.part.CFrame   = data.originalCFrame
-            end
-        end)
-    end
-    capturedDoors = {}
-    print("✅ Portas liberadas!")
-end)
-
--- BRING VEÍCULOS DO SERVIDOR
-local capturedVehicles = {}
-local bringVehiclesActive = false
-local bringVehiclesConn = nil
-
-CreateToggleButton(ScrollBrings, "🚗 Bring Veículos", function(state)
-    bringVehiclesActive = state
-    if bringVehiclesConn then bringVehiclesConn:Disconnect() bringVehiclesConn = nil end
-
-    if not bringVehiclesActive then
-        for _, data in pairs(capturedVehicles) do
-            pcall(function()
-                if data.part and data.part.Parent then
-                    data.part.Anchored = data.wasAnchored
-                    data.part.CFrame   = data.originalCFrame
-                end
-            end)
-        end
-        capturedVehicles = {}
-        print("❌ Bring Veículos OFF")
-        return
-    end
-
-    local target = GetTarget()
-    if not target or not target.Character then print("❌ Sem alvo!") bringVehiclesActive = false return end
-    local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
-    if not tRoot then bringVehiclesActive = false return end
-
-    capturedVehicles = {}
-    local vehicles = Workspace:FindFirstChild("Vehicles")
-    if vehicles then
-        for _, v in pairs(vehicles:GetChildren()) do
-            local pp = v:IsA("Model") and v.PrimaryPart
-            if pp then
-                table.insert(capturedVehicles, {
-                    part = pp,
-                    wasAnchored = pp.Anchored,
-                    originalCFrame = pp.CFrame,
-                })
-                pp.Anchored = true
-            end
-        end
-    end
-
-    if #capturedVehicles == 0 then
-        print("❌ Nenhum veículo encontrado!")
-        bringVehiclesActive = false
-        return
-    end
-
-    print("✅ " .. #capturedVehicles .. " veículos capturados → " .. target.Name)
-
-    bringVehiclesConn = RunService.Heartbeat:Connect(function()
-        if not bringVehiclesActive then return end
-        local tgt = GetTarget()
-        if not tgt or not tgt.Character then return end
-        local root = tgt.Character:FindFirstChild("HumanoidRootPart")
-        if not root then return end
-
-        for i, data in ipairs(capturedVehicles) do
-            pcall(function()
-                if data.part and data.part.Parent then
-                    local angle = (i / #capturedVehicles) * math.pi * 2
-                    local radius = 6
-                    data.part.CFrame = root.CFrame * CFrame.new(math.cos(angle) * radius, 0, math.sin(angle) * radius)
-                end
-            end)
-        end
-    end)
-end)
-
--- SOLTAR VEÍCULOS
-CreateActionButton(ScrollBrings, "🔓 Soltar Veículos", function()
-    if bringVehiclesConn then bringVehiclesConn:Disconnect() bringVehiclesConn = nil end
-    bringVehiclesActive = false
-    for _, data in pairs(capturedVehicles) do
-        pcall(function()
-            if data.part and data.part.Parent then
-                data.part.Anchored = data.wasAnchored
-                data.part.CFrame   = data.originalCFrame
-            end
-        end)
-    end
-    capturedVehicles = {}
-    print("✅ Veículos liberados!")
-end)
-
--- BRING PROPS SOLTOS DO WORKSPACE
-CreateActionButton(ScrollBrings, "📦 Snap Props no Alvo", function()
-    local target = GetTarget()
-    if not target or not target.Character then print("❌ Sem alvo!") return end
-    local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
+-- Snap Props (executado no servidor)
+local function SnapProps(targetPlayer)
+    if not targetPlayer or not targetPlayer.Character then return end
+    local tRoot = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
     if not tRoot then return end
 
     local props = {}
@@ -1520,12 +1342,12 @@ CreateActionButton(ScrollBrings, "📦 Snap Props no Alvo", function()
     }
 
     for _, obj in pairs(Workspace:GetChildren()) do
-        if not blacklist[obj.Name] and obj ~= LocalPlayer.Character then
+        if not blacklist[obj.Name] and obj ~= targetPlayer.Character then
             if obj:IsA("BasePart") or obj:IsA("MeshPart") or obj:IsA("UnionOperation") then
                 if not obj.Locked then
                     table.insert(props, obj)
                 end
-            elseif obj:IsA("Model") and obj.PrimaryPart and obj ~= LocalPlayer.Character then
+            elseif obj:IsA("Model") and obj.PrimaryPart and obj ~= targetPlayer.Character then
                 table.insert(props, obj.PrimaryPart)
             end
         end
@@ -1536,9 +1358,9 @@ CreateActionButton(ScrollBrings, "📦 Snap Props no Alvo", function()
         pcall(function()
             if prop and prop.Parent then
                 prop.Anchored = true
-                local angle  = (i / #props) * math.pi * 2
+                local angle = (i / #props) * math.pi * 2
                 local radius = 4 + math.floor((i - 1) / 10) * 3
-                prop.CFrame  = tRoot.CFrame * CFrame.new(
+                prop.CFrame = tRoot.CFrame * CFrame.new(
                     math.cos(angle) * radius,
                     math.random(0, 2),
                     math.sin(angle) * radius
@@ -1547,7 +1369,122 @@ CreateActionButton(ScrollBrings, "📦 Snap Props no Alvo", function()
             end
         end)
     end
-    print("✅ " .. count .. " props snappados em " .. target.Name)
+    print("✅ " .. count .. " props snappados em " .. targetPlayer.Name)
+end
+
+-- Bring Veículos (executado no servidor)
+local function SnapVehicles(targetPlayer)
+    if not targetPlayer or not targetPlayer.Character then return end
+    local tRoot = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not tRoot then return end
+
+    local vehicles = Workspace:FindFirstChild("Vehicles")
+    local captured = {}
+    if vehicles then
+        for _, v in pairs(vehicles:GetChildren()) do
+            local pp = v:IsA("Model") and v.PrimaryPart
+            if pp then
+                table.insert(captured, pp)
+                pp.Anchored = true
+            end
+        end
+    end
+
+    if #captured == 0 then return end
+
+    for i, part in ipairs(captured) do
+        pcall(function()
+            if part and part.Parent then
+                local angle = (i / #captured) * math.pi * 2
+                local radius = 6
+                part.CFrame = tRoot.CFrame * CFrame.new(math.cos(angle) * radius, 0, math.sin(angle) * radius)
+            end
+        end)
+    end
+    print("✅ " .. #captured .. " veículos movidos para " .. targetPlayer.Name)
+end
+
+-- Soltar Portas e Veículos (executado no servidor)
+local function ReleaseEverything()
+    -- Solta portas
+    for _, obj in pairs(Workspace:GetDescendants()) do
+        if obj:IsA("BasePart") and obj.Anchored and (obj.Name:lower():find("door") or obj.Name:lower():find("porta")) then
+            pcall(function()
+                obj.Anchored = false
+            end)
+        end
+    end
+    -- Solta veículos
+    local vehicles = Workspace:FindFirstChild("Vehicles")
+    if vehicles then
+        for _, v in pairs(vehicles:GetChildren()) do
+            local pp = v:IsA("Model") and v.PrimaryPart
+            if pp and pp.Anchored then
+                pcall(function()
+                    pp.Anchored = false
+                end)
+            end
+        end
+    end
+    print("✅ Objetos liberados!")
+end
+
+-- =========================================================
+-- ESCUTA O REMOTEEVENT E EXECUTA AS FUNÇÕES NO SERVIDOR
+-- =========================================================
+BringEvent.OnServerEvent:Connect(function(player, action, targetName)
+    if not targetName then return end
+    local targetPlayer = Players:FindFirstChild(targetName)
+    if not targetPlayer then return end
+
+    if action == "SnapDoors" then
+        SnapDoors(targetPlayer)
+    elseif action == "SnapProps" then
+        SnapProps(targetPlayer)
+    elseif action == "SnapVehicles" then
+        SnapVehicles(targetPlayer)
+    elseif action == "Release" then
+        ReleaseEverything()
+    end
+end)
+
+-- =========================================================
+-- BOTÕES DA ABA BRINGS (DISPARAM O REMOTEEVENT)
+-- =========================================================
+
+CreateActionButton(ScrollBrings, "📌 Snap Portas no Alvo", function()
+    local target = GetTarget()
+    if not target or not target.Character then
+        print("❌ Sem alvo!")
+        return
+    end
+    BringEvent:FireServer("SnapDoors", target.Name)
+    print("📡 Solicitado snap de portas para " .. target.Name)
+end)
+
+CreateActionButton(ScrollBrings, "📦 Snap Props no Alvo", function()
+    local target = GetTarget()
+    if not target or not target.Character then
+        print("❌ Sem alvo!")
+        return
+    end
+    BringEvent:FireServer("SnapProps", target.Name)
+    print("📡 Solicitado snap de props para " .. target.Name)
+end)
+
+CreateActionButton(ScrollBrings, "🚗 Snap Veículos no Alvo", function()
+    local target = GetTarget()
+    if not target or not target.Character then
+        print("❌ Sem alvo!")
+        return
+    end
+    BringEvent:FireServer("SnapVehicles", target.Name)
+    print("📡 Solicitado snap de veículos para " .. target.Name)
+end)
+
+CreateActionButton(ScrollBrings, "🔓 Soltar Tudo", function()
+    BringEvent:FireServer("Release")
+    print("📡 Solicitado para soltar tudo")
 end)
 
 -- =========================================================
